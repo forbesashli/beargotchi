@@ -1,0 +1,23 @@
+{
+  "configurations": [
+    {
+      "name": "STM32",
+      "compilerPath": "/usr/bin/arm-none-eabi-gcc",
+      "cStandard": "c11",
+      "cppStandard": "c++17",
+      "intelliSenseMode": "gcc-arm",
+      "defines": [
+        "USE_HAL_DRIVER",
+        "STM32H723xx"
+      ],
+      "includePath": [
+        "${workspaceFolder}/beargotchi/Core/Inc",
+        "${workspaceFolder}/beargotchi/Drivers/STM32H7xx_HAL_Driver/Inc",
+        "${workspaceFolder}/beargotchi/Drivers/STM32H7xx_HAL_Driver/Inc/Legacy",
+        "${workspaceFolder}/beargotchi/Drivers/CMSIS/Device/ST/STM32H7xx/Include",
+        "${workspaceFolder}/beargotchi/Drivers/CMSIS/Include"
+      ]
+    }
+  ],
+  "version": 4
+}

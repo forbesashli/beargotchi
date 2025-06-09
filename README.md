@@ -7,8 +7,14 @@ Desgin and spec documents are (to be) located in their respective folders.
 
 ## Build System
 
-In order to allow everyone to participate who has a STM32 chip /nucleo board. CMake files and appropriate abstraction for the pin configs (will be) introduced. 
+In order to allow everyone to participate who has a STM32 chip /nucleo board. Make files and appropriate abstraction for the pin configs (will be) introduced are in the 'beargotchi' second file. this project is generated using CubeMX for the pin configuration and HAL libraries (for now). 
 
-(Please include data sheets so I know what to do with whatever chip a person has.) 
+## Flashing
 
-#TODO Document build system for onboarding purposes
+Using openocd 
+
+'''
+sudo apt install openocd
+'''
+
+or using stm programmer 
