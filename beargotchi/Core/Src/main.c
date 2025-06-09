@@ -22,6 +22,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "seven_seg.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
