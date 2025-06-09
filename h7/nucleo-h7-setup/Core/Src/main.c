@@ -22,7 +22,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "seven_seg.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -81,6 +81,66 @@ static void MX_USB_OTG_HS_USB_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 volatile uint8_t mode = 0;
+
+static SEVEN_SEG_PIN D1 = {
+    .PORT = GPIOB,
+    .PIN_NUM = GPIO_PIN_9
+};
+
+static SEVEN_SEG_PIN B = {
+    .PORT = GPIOB,
+    .PIN_NUM = GPIO_PIN_8
+};
+
+static SEVEN_SEG_PIN D2 = {
+    .PORT = GPIOC,
+    .PIN_NUM = GPIO_PIN_6
+};
+
+static SEVEN_SEG_PIN D4 = {
+    .PORT = GPIOC,
+    .PIN_NUM = GPIO_PIN_7
+};
+
+static SEVEN_SEG_PIN Dp = {
+    .PORT = GPIOD,
+    .PIN_NUM = GPIO_PIN_15
+};
+
+static SEVEN_SEG_PIN F = {
+    .PORT = GPIOB,
+    .PIN_NUM = GPIO_PIN_12
+};
+
+static SEVEN_SEG_PIN D3 = {
+    .PORT = GPIOB,
+    .PIN_NUM = GPIO_PIN_15
+};
+
+static SEVEN_SEG_PIN A = {
+    .PORT = GPIOA,
+    .PIN_NUM = GPIO_PIN_15
+};
+
+static SEVEN_SEG_PIN E = {
+    .PORT = GPIOE,
+    .PIN_NUM = GPIO_PIN_3
+};
+
+static SEVEN_SEG_PIN D = {
+    .PORT = GPIOA,
+    .PIN_NUM = GPIO_PIN_4
+};
+
+static SEVEN_SEG_PIN G = {
+    .PORT = GPIOD,
+    .PIN_NUM = GPIO_PIN_14
+};
+
+static SEVEN_SEG_PIN C = {
+    .PORT = GPIOB,
+    .PIN_NUM = GPIO_PIN_5
+};
 /* USER CODE END 0 */
 
 /**
@@ -129,19 +189,53 @@ int main(void)
       switch (mode) {
           case 0:
               blink_interval = 200;
-        	  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_SET);
-        	  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
-        	  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_7, GPIO_PIN_SET);
-        	  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_15, GPIO_PIN_RESET);
+
+              writeSevenSegPin(A, 0);
+              writeSevenSegPin(B, 1);
+              writeSevenSegPin(C, 1);
+              writeSevenSegPin(D, 1);
+              writeSevenSegPin(E, 0);
+              writeSevenSegPin(F, 0);
+              writeSevenSegPin(G, 0);
+              writeSevenSegPin(Dp, 1);
+              writeSevenSegPin(D1, 1);
+              writeSevenSegPin(D2, 1);
+              writeSevenSegPin(D3, 1);
+              writeSevenSegPin(D4, 0);
+
               break;
           case 1:
               blink_interval = 100;
-              HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_SET);
-              HAL_GPIO_WritePin(GPIOB, GPIO_PIN_15, GPIO_PIN_SET);
-              HAL_GPIO_WritePin(GPIOC, GPIO_PIN_7, GPIO_PIN_RESET);
+              writeSevenSegPin(A, 0);
+              writeSevenSegPin(B, 0);
+              writeSevenSegPin(C, 0);
+              writeSevenSegPin(D, 1);
+              writeSevenSegPin(E, 0);
+              writeSevenSegPin(F, 0);
+              writeSevenSegPin(G, 0);
+              writeSevenSegPin(Dp, 1);
+              writeSevenSegPin(D1, 0);
+              writeSevenSegPin(D2, 0);
+              writeSevenSegPin(D3, 1);
+              writeSevenSegPin(D4, 1);
+
+
               break;
           case 2:
               blink_interval = 50;
+              writeSevenSegPin(A, 0);
+              writeSevenSegPin(B, 1);
+              writeSevenSegPin(C, 1);
+              writeSevenSegPin(D, 1);
+              writeSevenSegPin(E, 0);
+              writeSevenSegPin(F, 0);
+              writeSevenSegPin(G, 0);
+              writeSevenSegPin(Dp, 1);
+              writeSevenSegPin(D1, 1);
+              writeSevenSegPin(D2, 1);
+              writeSevenSegPin(D3, 1);
+              writeSevenSegPin(D4, 0);
+
               break;
       }
 

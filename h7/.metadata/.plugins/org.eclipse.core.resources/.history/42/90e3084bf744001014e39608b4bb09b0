@@ -1,0 +1,17 @@
+/*
+ * seven_seg.c
+ *
+ *  Created on: Jun 7, 2025
+ *      Author: Ashli
+ *
+ *  File for 7 segment display
+ */
+
+SEVEN_SEG_PIN D1 = {
+    .PORT = GPIOB,
+    .PIN_NUM = GPIO_PIN_9
+};
+
+void writeSevenSegPin(SEVEN_SEG_PIN pin) {
+    HAL_GPIO_WritePin(pin.PORT, pin.PIN_NUM, pin.STATE);
+}
