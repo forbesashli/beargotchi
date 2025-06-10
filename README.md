@@ -18,3 +18,12 @@ sudo apt install openocd
 '''
 
 or using stm programmer 
+
+to build 
+
+make 
+
+to flash 
+
+openocd -f interface/stlink.cfg -f target/stm32h7x.cfg -c "program build/beargotchi.elf verify reset exit"
+

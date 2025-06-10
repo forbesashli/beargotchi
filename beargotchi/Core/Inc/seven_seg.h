@@ -24,4 +24,12 @@ typedef struct {
  */
 void writeSevenSegPin(SEVEN_SEG_PIN pin, int state);
 
+void writeOnePlaceOne(void);
+
+void writeTwoPlaceTwo(void);
+
+void writeThreePlaceThree(void);
+
+void writeFourPlaceFour(void);
+
 #endif /* INC_SEVEN_SEG_H_ */

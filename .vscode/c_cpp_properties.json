@@ -15,7 +15,10 @@
         "${workspaceFolder}/beargotchi/Drivers/STM32H7xx_HAL_Driver/Inc",
         "${workspaceFolder}/beargotchi/Drivers/STM32H7xx_HAL_Driver/Inc/Legacy",
         "${workspaceFolder}/beargotchi/Drivers/CMSIS/Device/ST/STM32H7xx/Include",
-        "${workspaceFolder}/beargotchi/Drivers/CMSIS/Include"
+        "${workspaceFolder}/beargotchi/Drivers/CMSIS/Include",
+        "${workspaceFolder}/beargotchi/Middlewares/Third_Party/FreeRTOS/Source/include",
+        "${workspaceFolder}/beargotchi/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2",
+        "${workspaceFolder}/beargotchi/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F"
       ]
     }
   ],
