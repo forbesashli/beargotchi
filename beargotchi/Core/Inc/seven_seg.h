@@ -7,6 +7,8 @@
  */
 #include "main.h"
 #include "string.h"
+#include "cmsis_os.h"
+#include "math.h"
 #ifndef INC_SEVEN_SEG_H_
 #define INC_SEVEN_SEG_H_
 
@@ -25,5 +27,7 @@ typedef struct {
 void writeSevenSegPin(SEVEN_SEG_PIN pin, int state);
 
 void writeSevenSeg(int digit, int place);
+
+void writeNumToSevenSeg(int number);
 
 #endif /* INC_SEVEN_SEG_H_ */

@@ -61,3 +61,17 @@ void writeSevenSeg(int digit, int place){
         }
     }
 }
+
+void writeNumToSevenSeg(int number){
+    int display = number;
+    int divisor;
+    int digit; 
+    for (int i = 3 ; i >=0; i--){
+        divisor = pow(10,i);
+        digit = display/divisor;
+        display = display%divisor;
+
+        writeSevenSeg(digit, i);
+        osDelay(4);
+    }
+}

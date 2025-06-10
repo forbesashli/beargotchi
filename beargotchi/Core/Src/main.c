@@ -503,15 +503,13 @@ void StartRun10ms(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    
-    for (int i = 0; i < 4; i++) {
-        int value = carasel[(base_index + i) % 10];
-        writeSevenSeg(value, i);
-        osDelay(4); // slight multiplexing delay
-    }
+    writeNumToSevenSeg(9009);
 
-    // Increment the base index every few loops
-    // Say every 50ms to update the "carousel" speed
+    // for (int i = 0; i < 4; i++) {
+    //     int value = carasel[(base_index + i) % 10];
+    //     writeSevenSeg(value, i);
+    //     osDelay(4); // slight multiplexing delay
+    // }
 
   }
   /* USER CODE END 5 */
