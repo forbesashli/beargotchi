@@ -9,18 +9,19 @@
 
 #include "seven_seg.h"
 
+#define NUM_SEGMENTS 4
 // Segment encoding: 0bDP_G_F_E_D_C_B_A
 const uint8_t seven_seg_digits[10] = {
-    0b00111111, // 0
-    0b00000110, // 1
-    0b01011011, // 2
-    0b01001111, // 3
-    0b01100110, // 4
-    0b01101101, // 5
-    0b01111101, // 6
-    0b00000111, // 7
-    0b01111111, // 8
-    0b01101111  // 9
+    0b11000000, // 0
+    0b11111001, // 1
+    0b10100100, // 2
+    0b10110000, // 3
+    0b10011001, // 4
+    0b10010010, // 5
+    0b10000010, // 6
+    0b11111000, // 7
+    0b10000000, // 8
+    0b10010000  // 9
 };
 
 static const SEVEN_SEG_PIN digit_pins[8] = {
@@ -45,63 +46,18 @@ void writeSevenSegPin(SEVEN_SEG_PIN pin, int state) {
     HAL_GPIO_WritePin(pin.PORT, pin.PIN_NUM, state);
 }
 
-void writeOnePlaceOne(void){
-    writeSevenSegPin(digit_pins[0], 1);
-    writeSevenSegPin(digit_pins[1], 0);
-    writeSevenSegPin(digit_pins[2], 0);
-    writeSevenSegPin(digit_pins[3], 1);
-    writeSevenSegPin(digit_pins[4], 1);
-    writeSevenSegPin(digit_pins[5], 1);
-    writeSevenSegPin(digit_pins[6], 1);
-    writeSevenSegPin(digit_pins[7], 1);
-    writeSevenSegPin(place_planes[0], 0);
-    writeSevenSegPin(place_planes[1], 0);
-    writeSevenSegPin(place_planes[2], 0);
-    writeSevenSegPin(place_planes[3], 1);  
-}
+void writeSevenSeg(int digit, int place){
 
-void writeTwoPlaceTwo(void){
-    writeSevenSegPin(digit_pins[0], 0);
-    writeSevenSegPin(digit_pins[1], 0);
-    writeSevenSegPin(digit_pins[2], 1);
-    writeSevenSegPin(digit_pins[3], 0);
-    writeSevenSegPin(digit_pins[4], 0);
-    writeSevenSegPin(digit_pins[5], 1);
-    writeSevenSegPin(digit_pins[6], 0);
-    writeSevenSegPin(digit_pins[7], 1);
-    writeSevenSegPin(place_planes[0], 0);
-    writeSevenSegPin(place_planes[1], 0);
-    writeSevenSegPin(place_planes[2], 1);
-    writeSevenSegPin(place_planes[3], 0);  
-}
-
-void writeThreePlaceThree(void){
-    writeSevenSegPin(digit_pins[0], 0);
-    writeSevenSegPin(digit_pins[1], 0);
-    writeSevenSegPin(digit_pins[2], 0);
-    writeSevenSegPin(digit_pins[3], 0);
-    writeSevenSegPin(digit_pins[4], 1);
-    writeSevenSegPin(digit_pins[5], 1);
-    writeSevenSegPin(digit_pins[6], 0);
-    writeSevenSegPin(digit_pins[7], 1);
-    writeSevenSegPin(place_planes[0], 0);
-    writeSevenSegPin(place_planes[1], 1);
-    writeSevenSegPin(place_planes[2], 0);
-    writeSevenSegPin(place_planes[3], 0);  
-}
-
-
-void writeFourPlaceFour(void){
-    writeSevenSegPin(digit_pins[0], 1);
-    writeSevenSegPin(digit_pins[1], 0);
-    writeSevenSegPin(digit_pins[2], 0);
-    writeSevenSegPin(digit_pins[3], 1);
-    writeSevenSegPin(digit_pins[4], 1);
-    writeSevenSegPin(digit_pins[5], 0);
-    writeSevenSegPin(digit_pins[6], 0);
-    writeSevenSegPin(digit_pins[7], 1);
-    writeSevenSegPin(place_planes[0], 1);
-    writeSevenSegPin(place_planes[1], 0);
-    writeSevenSegPin(place_planes[2], 0);
-    writeSevenSegPin(place_planes[3], 0);  
+    uint8_t shift = seven_seg_digits[digit];
+    for (int i = 0 ; i < 8; i++){
+        writeSevenSegPin(digit_pins[i], (shift >> i) & 1);
+    }
+    for (int i = 0; i < NUM_SEGMENTS; i++){
+        if (i == place){
+            writeSevenSegPin(place_planes[i], 1);
+        }
+        else{
+            writeSevenSegPin(place_planes[i], 0);
+        }
+    }
 }

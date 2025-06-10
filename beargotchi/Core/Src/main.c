@@ -486,7 +486,8 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+uint16_t carasel[10] = {0 ,1 ,2 ,3 ,4, 5, 6, 7, 8, 9};
+int base_index = 0;
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartRun10ms */
@@ -502,15 +503,16 @@ void StartRun10ms(void *argument)
   /* Infinite loop */
   for(;;)
   {
+    
+    for (int i = 0; i < 4; i++) {
+        int value = carasel[(base_index + i) % 10];
+        writeSevenSeg(value, i);
+        osDelay(4); // slight multiplexing delay
+    }
 
-    writeOnePlaceOne();
-    HAL_Delay(4);
-    writeTwoPlaceTwo();
-    HAL_Delay(4);
-    writeThreePlaceThree();
-    HAL_Delay(4);
-    writeFourPlaceFour();
-    HAL_Delay(4);
+    // Increment the base index every few loops
+    // Say every 50ms to update the "carousel" speed
+
   }
   /* USER CODE END 5 */
 }
@@ -525,10 +527,15 @@ void StartRun10ms(void *argument)
 void StartRun100ms(void *argument)
 {
   /* USER CODE BEGIN StartRun100ms */
+  uint32_t tick;
+ 
+  tick = osKernelGetTickCount(); 
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+    tick += 1000U;                      
+    osDelayUntil(tick);
+    base_index = (base_index + 1) % 10;
   }
   /* USER CODE END StartRun100ms */
 }
