@@ -418,11 +418,11 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : B1_Pin */
-  GPIO_InitStruct.Pin = B1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  /*Configure GPIO pin : PC13 */
+  GPIO_InitStruct.Pin = GPIO_PIN_13;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PF3 */
   GPIO_InitStruct.Pin = GPIO_PIN_3;
@@ -481,13 +481,31 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF10_OTG1_HS;
   HAL_GPIO_Init(USB_FS_ID_GPIO_Port, &GPIO_InitStruct);
 
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
-uint16_t carasel[10] = {0 ,1 ,2 ,3 ,4, 5, 6, 7, 8, 9};
-int base_index = 0;
+uint16_t carasel[10] = {0 ,10 ,200 ,3000 ,4444, 500, 60, 7, 80, 9999};
+volatile int base_index = 0;
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	static uint32_t last_press = 0;
+	if(GPIO_Pin == GPIO_PIN_13) {
+	  if(HAL_GetTick() - last_press > 200) {
+		  base_index = (base_index + 1) % 10;
+		  last_press = HAL_GetTick();
+	  }
+
+  } else {
+      __NOP();
+  }
+}
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartRun10ms */
@@ -503,7 +521,8 @@ void StartRun10ms(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    writeNumToSevenSeg(9009);
+
+    writeNumToSevenSeg(carasel[base_index]);
 
     // for (int i = 0; i < 4; i++) {
     //     int value = carasel[(base_index + i) % 10];
@@ -531,7 +550,7 @@ void StartRun100ms(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    tick += 1000U;                      
+    tick += 3000U;                      
     osDelayUntil(tick);
     base_index = (base_index + 1) % 10;
   }
