@@ -1,6 +1,8 @@
 {
     "files.associations": {
         "string.h": "c",
-        "cmath": "c"
+        "cmath": "c",
+        "temp_humid_sensor.h": "c",
+        "main.h": "c"
     }
 }

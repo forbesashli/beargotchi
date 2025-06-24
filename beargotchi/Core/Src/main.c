@@ -24,6 +24,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "seven_seg.h"
+#include "temp_humid_sensor.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -402,8 +403,8 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4|GPIO_PIN_15, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, LED_GREEN_Pin|GPIO_PIN_12|LED_RED_Pin|GPIO_PIN_15
-                          |GPIO_PIN_5|GPIO_PIN_8|GPIO_PIN_9, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, LED_GREEN_Pin|SensorDataLine_Pin|GPIO_PIN_12|LED_RED_Pin
+                          |GPIO_PIN_15|GPIO_PIN_5|GPIO_PIN_8|GPIO_PIN_9, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOD, USB_FS_PWR_EN_Pin|GPIO_PIN_14|GPIO_PIN_15, GPIO_PIN_RESET);
@@ -438,10 +439,10 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LED_GREEN_Pin PB12 LED_RED_Pin PB15
-                           PB5 PB8 PB9 */
-  GPIO_InitStruct.Pin = LED_GREEN_Pin|GPIO_PIN_12|LED_RED_Pin|GPIO_PIN_15
-                          |GPIO_PIN_5|GPIO_PIN_8|GPIO_PIN_9;
+  /*Configure GPIO pins : LED_GREEN_Pin SensorDataLine_Pin PB12 LED_RED_Pin
+                           PB15 PB5 PB8 PB9 */
+  GPIO_InitStruct.Pin = LED_GREEN_Pin|SensorDataLine_Pin|GPIO_PIN_12|LED_RED_Pin
+                          |GPIO_PIN_15|GPIO_PIN_5|GPIO_PIN_8|GPIO_PIN_9;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -522,8 +523,14 @@ void StartRun10ms(void *argument)
   for(;;)
   {
 
-    writeNumToSevenSeg(carasel[base_index]);
-
+    // writeNumToSevenSeg(carasel[base_index]);
+    float val = 1;
+    
+    uint8_t myArray[4] ={0,3,2,4};
+    // float_to_bytes(val, myArray);           
+                          
+    writeNumToSevenSeg(myArray[3]);
+    
     // for (int i = 0; i < 4; i++) {
     //     int value = carasel[(base_index + i) % 10];
     //     writeSevenSeg(value, i);

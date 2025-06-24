@@ -31,7 +31,8 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include <stdbool.h>
+#include <stdlib.h>
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -73,6 +74,8 @@ void Error_Handler(void);
 #define RMII_RXD1_GPIO_Port GPIOC
 #define LED_GREEN_Pin GPIO_PIN_0
 #define LED_GREEN_GPIO_Port GPIOB
+#define SensorDataLine_Pin GPIO_PIN_11
+#define SensorDataLine_GPIO_Port GPIOB
 #define RMII_TXD1_Pin GPIO_PIN_13
 #define RMII_TXD1_GPIO_Port GPIOB
 #define LED_RED_Pin GPIO_PIN_14
@@ -107,7 +110,10 @@ void Error_Handler(void);
 #define LED_YELLOW_GPIO_Port GPIOE
 
 /* USER CODE BEGIN Private defines */
-
+typedef struct {
+    GPIO_TypeDef* PORT;   // pointer to the GPIO port (e.g., GPIOB)
+    uint16_t PIN_NUM;     // the pin number (e.g., GPIO_PIN_9)
+} SEVEN_SEG_PIN;
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus
