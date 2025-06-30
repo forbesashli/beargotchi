@@ -519,23 +519,20 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 void StartRun10ms(void *argument)
 {
   /* USER CODE BEGIN 5 */
+
+  uint32_t tick;
+  SEVEN_SEG_PIN data_pin = {.PORT = GPIOA,.PIN_NUM = GPIO_PIN_15};
+  tick = osKernelGetTickCount(); 
   /* Infinite loop */
   for(;;)
   {
 
-    // writeNumToSevenSeg(carasel[base_index]);
-    float val = 1;
-    
-    uint8_t myArray[4] ={0,3,2,4};
-    // float_to_bytes(val, myArray);           
-                          
-    writeNumToSevenSeg(myArray[3]);
-    
-    // for (int i = 0; i < 4; i++) {
-    //     int value = carasel[(base_index + i) % 10];
-    //     writeSevenSeg(value, i);
-    //     osDelay(4); // slight multiplexing delay
-    // }
+    int* arr = dht11_read_data(data_pin);
+       
+    // float temp_val = eight_bit_to_float(arr, 0, 4);
+
+    writeNumToSevenSeg(arr[1]);
+    // free(arr);
 
   }
   /* USER CODE END 5 */
@@ -557,9 +554,10 @@ void StartRun100ms(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    tick += 3000U;                      
+    tick += 100U;                      
     osDelayUntil(tick);
     base_index = (base_index + 1) % 10;
+   
   }
   /* USER CODE END StartRun100ms */
 }

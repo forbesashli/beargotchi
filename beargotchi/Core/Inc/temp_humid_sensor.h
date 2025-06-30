@@ -53,6 +53,6 @@ int dht11_check_parity(float message);
 /**
  * conver the 8 bits stored in the array to a float value given the start and stop index
  */
-float eight_bit_to_float(int* arr, int start_index, int end_index)
+float eight_bit_to_float(int* arr, int start_index, int end_index);
 
 #endif /* INC_TEMP_HUMID_SENSOR_H_ */

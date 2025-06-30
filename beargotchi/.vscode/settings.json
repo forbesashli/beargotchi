@@ -4,5 +4,7 @@
         "cmath": "c",
         "temp_humid_sensor.h": "c",
         "main.h": "c"
-    }
+    },
+    "cortex-debug.gdbPath": "/usr/local/bin/arm-none-eabi-gdb",
+    "cortex-debug.openocdPath": "/usr/bin/openocd"
 }
