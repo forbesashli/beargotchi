@@ -81,21 +81,20 @@ int read_bit(SEVEN_SEG_PIN pin, TIM_HandleTypeDef *timer){
 
 int* dht11_read_data(SEVEN_SEG_PIN data_pin, TIM_HandleTypeDef *timer){
     delay_us(40, timer);
-    delay_us(80,timer);
-    delay_us(80,timer);
-    // if (HAL_GPIO_ReadPin(data_pin.PORT, data_pin.PIN_NUM) == GPIO_PIN_RESET){
-    //     delay_us(80, timer);
+
+    if (HAL_GPIO_ReadPin(data_pin.PORT, data_pin.PIN_NUM) == GPIO_PIN_RESET){
+        delay_us(80, timer);
     
-    // }else{
-    //     return NULL;
-    // }
-    // if (HAL_GPIO_ReadPin(data_pin.PORT, data_pin.PIN_NUM) == GPIO_PIN_SET){
-    //     delay_us(80, timer);
+    }else{
+        return NULL;
+    }
+    if (HAL_GPIO_ReadPin(data_pin.PORT, data_pin.PIN_NUM) == GPIO_PIN_SET){
+        delay_us(80, timer);
     
-    // }
-    // else {
-    //     return NULL;
-    // }
+    }
+    else {
+        return NULL;
+    }
 
     int* arr = (int*)malloc(NUM_BITS * sizeof(int));
     if (arr == NULL) {
