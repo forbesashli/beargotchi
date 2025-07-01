@@ -46,21 +46,17 @@ bool dht11_request_data(SEVEN_SEG_PIN data_pin, TIM_HandleTypeDef *timer){
     return true;
 }
 
-bool listen_for_state(SEVEN_SEG_PIN pin, GPIO_PinState state, uint32_t time){
-    
-    uint32_t start_tick = osKernelGetTickCount(); 
-
-    // time in us 
-    uint32_t timeout = 80;
-
-    while(HAL_GPIO_ReadPin(pin.PORT, pin.PIN_NUM) == state){
-        uint32_t current_tick = osKernelGetTickCount();
-        if (current_tick - start_tick  > timeout){
+bool listen_for_state(SEVEN_SEG_PIN pin, GPIO_PinState state, uint32_t timeout_us, TIM_HandleTypeDef *timer){
+    // Wait for pin to change from 'state' within timeout_us microseconds
+    uint32_t elapsed = 0;
+    while (HAL_GPIO_ReadPin(pin.PORT, pin.PIN_NUM) == state) {
+        delay_us(1, timer); // Use your delay_us, pass timer if needed
+        elapsed++;
+        if (elapsed >= timeout_us) {
             return false;
         }
     }
     return true;
-
 }
 
 int read_bit(SEVEN_SEG_PIN pin, TIM_HandleTypeDef *timer){
@@ -82,19 +78,8 @@ int read_bit(SEVEN_SEG_PIN pin, TIM_HandleTypeDef *timer){
 int* dht11_read_data(SEVEN_SEG_PIN data_pin, TIM_HandleTypeDef *timer){
     delay_us(40, timer);
 
-    if (HAL_GPIO_ReadPin(data_pin.PORT, data_pin.PIN_NUM) == GPIO_PIN_RESET){
-        delay_us(80, timer);
-    
-    }else{
-        return NULL;
-    }
-    if (HAL_GPIO_ReadPin(data_pin.PORT, data_pin.PIN_NUM) == GPIO_PIN_SET){
-        delay_us(80, timer);
-    
-    }
-    else {
-        return NULL;
-    }
+    if (!listen_for_state(data_pin, GPIO_PIN_RESET, 100, timer)) return NULL; // Wait for 80us LOW
+    if (!listen_for_state(data_pin, GPIO_PIN_SET, 100, timer)) return NULL;   // Wait for 80us HIGH
 
     int* arr = (int*)malloc(NUM_BITS * sizeof(int));
     if (arr == NULL) {
@@ -103,17 +88,14 @@ int* dht11_read_data(SEVEN_SEG_PIN data_pin, TIM_HandleTypeDef *timer){
 
     for(int i = 0; i < NUM_BITS; i++){
         delay_us(40, timer);
-        
         int bit = read_bit(data_pin, timer);
         if (bit == -1) {
-                free(arr);
-                return NULL;
+            free(arr);
+            return NULL;
         }else{
             arr[i] = bit;
         }
-        
     }
-
     return arr;
 }
 

@@ -72,6 +72,7 @@ void writeNumToSevenSeg(int number){
         display = display%divisor;
 
         writeSevenSeg(digit, i);
-        osDelay(4);
+        // osDelay(4);
+        HAL_Delay(4); // Delay to allow the display to update
     }
 }

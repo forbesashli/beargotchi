@@ -7,7 +7,7 @@
  */
 #include "main.h"
 #include "string.h"
-#include "cmsis_os.h"
+// #include "cmsis_os.h"
 #include "math.h"
 #ifndef INC_SEVEN_SEG_H_
 #define INC_SEVEN_SEG_H_

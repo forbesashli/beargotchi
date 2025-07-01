@@ -8,7 +8,7 @@
  */
 
 #include "main.h"
-#include "cmsis_os.h"
+// #include "cmsis_os.h"
 
 #ifndef INC_TEMP_HUMID_SENSOR_H_
 #define INC_TEMP_HUMID_SENSOR_H_

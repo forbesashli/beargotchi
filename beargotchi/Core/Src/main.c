@@ -19,7 +19,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "string.h"
-#include "cmsis_os.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -68,25 +67,6 @@ TIM_HandleTypeDef htim6;
 
 UART_HandleTypeDef huart3;
 
-/* Definitions for Run10ms */
-osThreadId_t Run10msHandle;
-const osThreadAttr_t Run10ms_attributes = {
-  .name = "Run10ms",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
-};
-/* Definitions for Run100ms */
-osThreadId_t Run100msHandle;
-const osThreadAttr_t Run100ms_attributes = {
-  .name = "Run100ms",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityLow,
-};
-/* Definitions for tempQueue */
-osMessageQueueId_t tempQueueHandle;
-const osMessageQueueAttr_t tempQueue_attributes = {
-  .name = "tempQueue"
-};
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -98,9 +78,6 @@ static void MX_ETH_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_USB_OTG_HS_USB_Init(void);
 static void MX_TIM6_Init(void);
-void StartRun10ms(void *argument);
-void StartRun100ms(void *argument);
-
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -143,55 +120,36 @@ int main(void)
   MX_USB_OTG_HS_USB_Init();
   MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
-
+  SEVEN_SEG_PIN data_pin = {.PORT = GPIOB,.PIN_NUM = GPIO_PIN_11};
+  HAL_TIM_Base_Start(&htim6);
+  int base_index = 0; // This will be used to display temperature or humidity
   /* USER CODE END 2 */
 
-  /* Init scheduler */
-  osKernelInitialize();
-
-  /* USER CODE BEGIN RTOS_MUTEX */
-  /* add mutexes, ... */
-  /* USER CODE END RTOS_MUTEX */
-
-  /* USER CODE BEGIN RTOS_SEMAPHORES */
-  /* add semaphores, ... */
-  /* USER CODE END RTOS_SEMAPHORES */
-
-  /* USER CODE BEGIN RTOS_TIMERS */
-  /* start timers, add new ones, ... */
-  /* USER CODE END RTOS_TIMERS */
-
-  /* Create the queue(s) */
-  /* creation of tempQueue */
-  tempQueueHandle = osMessageQueueNew (32, sizeof(uint32_t), &tempQueue_attributes);
-
-  /* USER CODE BEGIN RTOS_QUEUES */
-  /* add queues, ... */
-  /* USER CODE END RTOS_QUEUES */
-
-  /* Create the thread(s) */
-  /* creation of Run10ms */
-  Run10msHandle = osThreadNew(StartRun10ms, NULL, &Run10ms_attributes);
-
-  /* creation of Run100ms */
-  Run100msHandle = osThreadNew(StartRun100ms, NULL, &Run100ms_attributes);
-
-  /* USER CODE BEGIN RTOS_THREADS */
-  /* add threads, ... */
-  /* USER CODE END RTOS_THREADS */
-
-  /* USER CODE BEGIN RTOS_EVENTS */
-  /* add events, ... */
-  /* USER CODE END RTOS_EVENTS */
-
-  /* Start scheduler */
-  osKernelStart();
-
-  /* We should never get here as control is now taken by the scheduler */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
   while (1)
   {
+    if (dht11_request_data(data_pin, &htim6) == true){
+      int * arr = dht11_read_data(data_pin, &htim6);
+      if (arr != NULL) {
+        float humidity = 0.0f;
+        float temperature = 0.0f;
+         if (dht11_parse_data(arr, &humidity, &temperature)) {
+            base_index = (int)temperature; // or display humidity if you want
+            // Optionally send to queue as well
+            uint32_t temp = (uint32_t)temperature;
+            
+            uint32_t humid = (uint32_t)humidity;
+            
+            
+         }
+         free(arr);
+        }
+      }
+      writeNumToSevenSeg(base_index);
+      HAL_Delay(5000); // Wait for 2 seconds before next reading
+      
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -525,7 +483,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(USB_FS_ID_GPIO_Port, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
-  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 5, 0);
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
@@ -533,93 +491,7 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-uint16_t carasel[10] = {0 ,10 ,200 ,3000 ,4444, 500, 60, 7, 80, 9999};
-volatile int base_index = 9999;
-
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-	static uint32_t last_press = 0;
-	if(GPIO_Pin == GPIO_PIN_13) {
-	  if(HAL_GetTick() - last_press > 200) {
-		  base_index = (base_index + 1) % 10;
-		  last_press = HAL_GetTick();
-	  }
-
-  } else {
-      __NOP();
-  }
-}
 /* USER CODE END 4 */
-
-/* USER CODE BEGIN Header_StartRun10ms */
-/**
-  * @brief  Function implementing the Run10ms thread.
-  * @param  argument: Not used
-  * @retval None
-  */
-/* USER CODE END Header_StartRun10ms */
-void StartRun10ms(void *argument)
-{
-  /* USER CODE BEGIN 5 */
-
-  uint32_t tick;
-  tick = osKernelGetTickCount(); 
-  /* Infinite loop */
-  for(;;)
-  {
-    writeNumToSevenSeg(base_index);
-
-  }
-  /* USER CODE END 5 */
-}
-
-/* USER CODE BEGIN Header_StartRun100ms */
-/**
-* @brief Function implementing the Run100ms thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_StartRun100ms */
-void StartRun100ms(void *argument)
-{
-  /* USER CODE BEGIN StartRun100ms */
-  uint32_t tick;
-  SEVEN_SEG_PIN data_pin = {.PORT = GPIOB,.PIN_NUM = GPIO_PIN_11};
-  tick = osKernelGetTickCount(); 
-  HAL_TIM_Base_Start(&htim6);
-  /* Infinite loop */
-  for(;;)
-  {
-
-    tick += 100U;    
-    if (dht11_request_data(data_pin, &htim6) == true){
-      uint32_t primask = __get_PRIMASK();
-      __disable_irq();
-      int * arr = dht11_read_data(data_pin, &htim6);
-      if (arr != NULL) {
-        float humidity, temperature;
-        if (dht11_parse_data(arr, &humidity, &temperature)) {
-            base_index = (int)temperature; // or display humidity if you want
-            // Optionally send to queue as well
-            uint32_t temp = (uint32_t)temperature;
-            uint32_t humid = (uint32_t)humidity;
-            // osMessageQueuePut(tempQueueHandle, &temp, 0U, 0U);
-            // osMessageQueuePut(tempQueueHandle, &humid, 0U, 0U);
-        } else {
-            base_index = 9999; // Error state
-        }
-        free(arr);
-      } else {
-        base_index = 9999; // Error state
-      }
-      if (!primask) __enable_irq();
-    }     
-    osDelayUntil(tick);
-    
-  
-  }
-  /* USER CODE END StartRun100ms */
-}
 
 /**
   * @brief  Period elapsed callback in non blocking mode
