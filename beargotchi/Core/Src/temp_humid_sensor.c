@@ -10,7 +10,13 @@
 #include "temp_humid_sensor.h"
 #define COM_LENGTH_S 40
 #define S_TO_MS(t) (t)/1000
-#define NUM_BITS 32 // 4*8
+#define NUM_BITS 40 // DHT11 sends 40 bits (5 bytes)
+
+void delay_us (uint16_t us, TIM_HandleTypeDef *timer)
+{
+	__HAL_TIM_SET_COUNTER(timer,0);  // set the counter value a 0
+	while (__HAL_TIM_GET_COUNTER(timer) < us); // wait for the counter to reach the us input in the parameter
+}
 
 void set_pin_output_mode(SEVEN_SEG_PIN pin){
     GPIO_InitTypeDef GPIO_InitStruct = {0};
@@ -29,16 +35,14 @@ void set_pin_input_mode(SEVEN_SEG_PIN pin){
     HAL_GPIO_Init(pin.PORT, &GPIO_InitStruct);
 }
 
-void dht11_request_data(SEVEN_SEG_PIN data_pin){
+bool dht11_request_data(SEVEN_SEG_PIN data_pin, TIM_HandleTypeDef *timer){
     
     set_pin_output_mode(data_pin);
-
-    uint32_t tick;
- 
-    tick = osKernelGetTickCount(); 
-    tick += 180;
     HAL_GPIO_WritePin(data_pin.PORT, data_pin.PIN_NUM, 0);
-    osDelayUntil(tick);
+    delay_us(18000, timer);
+    HAL_GPIO_WritePin(data_pin.PORT, data_pin.PIN_NUM,1);
+    delay_us(40, timer);
+    set_pin_input_mode(data_pin);
     return true;
 }
 
@@ -47,10 +51,11 @@ bool listen_for_state(SEVEN_SEG_PIN pin, GPIO_PinState state, uint32_t time){
     uint32_t start_tick = osKernelGetTickCount(); 
 
     // time in us 
-    const uint32_t timeout = time - osKernelGetSysTimerFreq() / 1000000u;
+    uint32_t timeout = 80;
 
     while(HAL_GPIO_ReadPin(pin.PORT, pin.PIN_NUM) == state){
-        if (osKernelGetTickCount() - start_tick  > timeout){
+        uint32_t current_tick = osKernelGetTickCount();
+        if (current_tick - start_tick  > timeout){
             return false;
         }
     }
@@ -58,67 +63,82 @@ bool listen_for_state(SEVEN_SEG_PIN pin, GPIO_PinState state, uint32_t time){
 
 }
 
-int read_bit(SEVEN_SEG_PIN pin){
+int read_bit(SEVEN_SEG_PIN pin, TIM_HandleTypeDef *timer){
     
-    uint32_t tick_count = 0;
-    uint64_t tick_frequency = osKernelGetSysTimerFreq(); // Use uint64_t for potential larger frequencies
-    uint64_t microseconds;
-    uint32_t start_tick = osKernelGetTickCount();
-    while(HAL_GPIO_ReadPin(pin.PORT, pin.PIN_NUM) == GPIO_PIN_SET){
-        tick_count++;
-    }
+    delay_us(40, timer);
+    int ret_val = -1;
 
-    uint32_t time= (tick_count - start_tick)*1000000 / tick_frequency;
-
-    if (time < 26){
-        return -1; // bad
-    }
-    else if (time < 30){
-        return 0;
-    }
-    else if (time < 70){
-        return 1;
+    if (HAL_GPIO_ReadPin(pin.PORT, pin.PIN_NUM) == GPIO_PIN_SET){
+        ret_val = 1;
+    }else if (HAL_GPIO_ReadPin(pin.PORT, pin.PIN_NUM) == GPIO_PIN_RESET){
+        ret_val = 0;
     }
     else{
-        return -1; // bad
+        ret_val = -1;
     }
+    return ret_val;
 }
 
-int* dht11_read_data(SEVEN_SEG_PIN data_pin){
-    set_pin_input_mode(data_pin);
-
-
-    listen_for_state(data_pin, GPIO_PIN_RESET, 80);
-    listen_for_state(data_pin, GPIO_PIN_SET, 80);
+int* dht11_read_data(SEVEN_SEG_PIN data_pin, TIM_HandleTypeDef *timer){
+    delay_us(40, timer);
+    delay_us(80,timer);
+    delay_us(80,timer);
+    // if (HAL_GPIO_ReadPin(data_pin.PORT, data_pin.PIN_NUM) == GPIO_PIN_RESET){
+    //     delay_us(80, timer);
+    
+    // }else{
+    //     return NULL;
+    // }
+    // if (HAL_GPIO_ReadPin(data_pin.PORT, data_pin.PIN_NUM) == GPIO_PIN_SET){
+    //     delay_us(80, timer);
+    
+    // }
+    // else {
+    //     return NULL;
+    // }
 
     int* arr = (int*)malloc(NUM_BITS * sizeof(int));
     if (arr == NULL) {
-       
         return NULL;
     }
 
     for(int i = 0; i < NUM_BITS; i++){
-        if (listen_for_state(data_pin, GPIO_PIN_RESET, 50)){
-            arr[i] = read_bit(data_pin); //read in the bit 
+        delay_us(40, timer);
+        
+        int bit = read_bit(data_pin, timer);
+        if (bit == -1) {
+                free(arr);
+                return NULL;
+        }else{
+            arr[i] = bit;
         }
-        else{
-            return NULL;
-        }
+        
     }
 
     return arr;
 }
 
-float eight_bit_to_float(int* arr, int start_index, int end_index){
-    int value= 0;
-    for (int i = start_index; i < end_index; i++){
-        value = (value << 1) | (arr[i] & 1);
+// Convert 8 bits (starting at start_index) to a byte
+uint8_t bits_to_byte(const int* arr, int start_index) {
+    uint8_t value = 0;
+    for (int i = 0; i < 8; i++) {
+        value = (value << 1) | (arr[start_index + i] & 1);
     }
-    return (float)value;
+    return value;
 }
 
-int dht11_check_parity(float message){
-
-    return 0;
+// Parse DHT11 bit array into humidity and temperature
+// Returns true if checksum is valid, false otherwise
+bool dht11_parse_data(const int* arr, float* humidity, float* temperature) {
+    if (!arr || !humidity || !temperature) return false;
+    uint8_t hum_int = bits_to_byte(arr, 0);
+    uint8_t hum_dec = bits_to_byte(arr, 8);
+    uint8_t temp_int = bits_to_byte(arr, 16);
+    uint8_t temp_dec = bits_to_byte(arr, 24);
+    uint8_t checksum = bits_to_byte(arr, 32);
+    uint8_t sum = hum_int + hum_dec + temp_int + temp_dec;
+    // if (sum != checksum) return false;
+    *humidity = (float)hum_int + ((float)hum_dec) / 10.0f;
+    *temperature = (float)temp_int + ((float)temp_dec) / 10.0f;
+    return true;
 }
- 

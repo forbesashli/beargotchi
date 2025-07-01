@@ -64,6 +64,8 @@ ETH_TxPacketConfig TxConfig;
 
 ETH_HandleTypeDef heth;
 
+TIM_HandleTypeDef htim6;
+
 UART_HandleTypeDef huart3;
 
 /* Definitions for Run10ms */
@@ -95,6 +97,7 @@ static void MX_GPIO_Init(void);
 static void MX_ETH_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_USB_OTG_HS_USB_Init(void);
+static void MX_TIM6_Init(void);
 void StartRun10ms(void *argument);
 void StartRun100ms(void *argument);
 
@@ -138,6 +141,7 @@ int main(void)
   MX_ETH_Init();
   MX_USART3_UART_Init();
   MX_USB_OTG_HS_USB_Init();
+  MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -300,6 +304,44 @@ static void MX_ETH_Init(void)
   /* USER CODE BEGIN ETH_Init 2 */
 
   /* USER CODE END ETH_Init 2 */
+
+}
+
+/**
+  * @brief TIM6 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM6_Init(void)
+{
+
+  /* USER CODE BEGIN TIM6_Init 0 */
+
+  /* USER CODE END TIM6_Init 0 */
+
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM6_Init 1 */
+
+  /* USER CODE END TIM6_Init 1 */
+  htim6.Instance = TIM6;
+  htim6.Init.Prescaler = 275-1;
+  htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim6.Init.Period = 65535;
+  htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim6, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM6_Init 2 */
+
+  /* USER CODE END TIM6_Init 2 */
 
 }
 
@@ -492,7 +534,7 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 uint16_t carasel[10] = {0 ,10 ,200 ,3000 ,4444, 500, 60, 7, 80, 9999};
-volatile int base_index = 0;
+volatile int base_index = 9999;
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
@@ -521,18 +563,11 @@ void StartRun10ms(void *argument)
   /* USER CODE BEGIN 5 */
 
   uint32_t tick;
-  SEVEN_SEG_PIN data_pin = {.PORT = GPIOA,.PIN_NUM = GPIO_PIN_15};
   tick = osKernelGetTickCount(); 
   /* Infinite loop */
   for(;;)
   {
-
-    int* arr = dht11_read_data(data_pin);
-       
-    // float temp_val = eight_bit_to_float(arr, 0, 4);
-
-    writeNumToSevenSeg(arr[1]);
-    // free(arr);
+    writeNumToSevenSeg(base_index);
 
   }
   /* USER CODE END 5 */
@@ -549,15 +584,39 @@ void StartRun100ms(void *argument)
 {
   /* USER CODE BEGIN StartRun100ms */
   uint32_t tick;
- 
+  SEVEN_SEG_PIN data_pin = {.PORT = GPIOB,.PIN_NUM = GPIO_PIN_11};
   tick = osKernelGetTickCount(); 
+  HAL_TIM_Base_Start(&htim6);
   /* Infinite loop */
   for(;;)
   {
-    tick += 100U;                      
+
+    tick += 100U;    
+    if (dht11_request_data(data_pin, &htim6) == true){
+      uint32_t primask = __get_PRIMASK();
+      __disable_irq();
+      int * arr = dht11_read_data(data_pin, &htim6);
+      if (arr != NULL) {
+        float humidity, temperature;
+        if (dht11_parse_data(arr, &humidity, &temperature)) {
+            base_index = (int)temperature; // or display humidity if you want
+            // Optionally send to queue as well
+            uint32_t temp = (uint32_t)temperature;
+            uint32_t humid = (uint32_t)humidity;
+            // osMessageQueuePut(tempQueueHandle, &temp, 0U, 0U);
+            // osMessageQueuePut(tempQueueHandle, &humid, 0U, 0U);
+        } else {
+            base_index = 9999; // Error state
+        }
+        free(arr);
+      } else {
+        base_index = 9999; // Error state
+      }
+      if (!primask) __enable_irq();
+    }     
     osDelayUntil(tick);
-    base_index = (base_index + 1) % 10;
-   
+    
+  
   }
   /* USER CODE END StartRun100ms */
 }
