@@ -152,7 +152,7 @@ int main(void)
     // if (!listen_for_state(data_pin, GPIO_PIN_SET, 80, &htim6)) return NULL;   // Wait for 80us HIGH
     if (dht11_request_data(data_pin, &htim6) == true){
 
-      if (!listen_for_state(data_pin, GPIO_PIN_RESET, 90, &htim6))
+      if (!listen_for_state(data_pin, GPIO_PIN_RESET, 100, &htim6))
       {
         HD44780_Clear();
         HD44780_PrintStr("first state failed");
@@ -178,7 +178,7 @@ int main(void)
             uint32_t humid = (uint32_t)humidity;
             char snum[5];
     
-            itoa(temp, snum, 10);
+            itoa(humid, snum, 10);
             HD44780_Clear();
             HD44780_SetCursor(0,0);
             HD44780_PrintStr(snum);
