@@ -178,7 +178,7 @@ int main(void)
             uint32_t humid = (uint32_t)humidity;
             char snum[5];
     
-            itoa(humid, snum, 10);
+            itoa(temp, snum, 10);
             HD44780_Clear();
             HD44780_SetCursor(0,0);
             HD44780_PrintStr(snum);

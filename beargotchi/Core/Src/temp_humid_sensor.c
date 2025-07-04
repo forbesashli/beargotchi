@@ -64,7 +64,7 @@ bool listen_for_state(SEVEN_SEG_PIN pin, GPIO_PinState state, uint32_t timeout_u
 
 int read_bit(SEVEN_SEG_PIN pin, TIM_HandleTypeDef *timer){
     
-    delay_us(40, timer);
+    delay_us(50, timer);
     int ret_val = -1;
 
     if (HAL_GPIO_ReadPin(pin.PORT, pin.PIN_NUM) == GPIO_PIN_SET){
@@ -116,8 +116,8 @@ bool dht11_parse_data(const int* arr, float* humidity, float* temperature) {
     uint8_t temp_int = bits_to_byte(arr, 16);
     uint8_t temp_dec = bits_to_byte(arr, 24);
     uint8_t checksum = bits_to_byte(arr, 32);
-    uint8_t sum = hum_int + hum_dec + temp_int + temp_dec;
-    // if (sum != checksum) return false;
+    uint8_t sum = hum_int|temp_int;
+    if (sum != checksum) return false;
     *humidity = (float)hum_int + ((float)hum_dec) / 10.0f;
     *temperature = (float)temp_int + ((float)temp_dec) / 10.0f;
     return true;
