@@ -24,6 +24,7 @@
 /* USER CODE BEGIN Includes */
 #include "seven_seg.h"
 #include "temp_humid_sensor.h"
+#include "lcd_i2c.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -63,11 +64,15 @@ ETH_TxPacketConfig TxConfig;
 
 ETH_HandleTypeDef heth;
 
+I2C_HandleTypeDef hi2c5;
+
 TIM_HandleTypeDef htim6;
 
 UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
+
+#define SLAVE_ADDRESS_LCD 0x3F // change this according to ur setup
 
 /* USER CODE END PV */
 
@@ -78,12 +83,15 @@ static void MX_ETH_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_USB_OTG_HS_USB_Init(void);
 static void MX_TIM6_Init(void);
+static void MX_I2C5_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+int row=0;
+int col=0;
 
 /* USER CODE END 0 */
 
@@ -119,36 +127,102 @@ int main(void)
   MX_USART3_UART_Init();
   MX_USB_OTG_HS_USB_Init();
   MX_TIM6_Init();
+  MX_I2C5_Init();
   /* USER CODE BEGIN 2 */
-  SEVEN_SEG_PIN data_pin = {.PORT = GPIOB,.PIN_NUM = GPIO_PIN_11};
-  HAL_TIM_Base_Start(&htim6);
+
+  // HAL_TIM_Base_Start(&htim6);
   int base_index = 0; // This will be used to display temperature or humidity
+  uint8_t TX_Buffer [] = "C" ;
+ 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  HD44780_Init(2);
+  HD44780_Clear();
+  HD44780_SetCursor(0,0);
+  HD44780_PrintStr("HELLO");
+  HD44780_SetCursor(10,1);
+  HD44780_PrintStr("WORLD");
+  HAL_Delay(2000);
 
+  HD44780_Clear();
+  HD44780_SetCursor(0,0);
+  HD44780_PrintStr("HELLO");
+  HAL_Delay(2000);
+  HD44780_NoBacklight();
+  HAL_Delay(2000);
+  HD44780_Backlight();
+
+  HAL_Delay(2000);
+  HD44780_Cursor();
+  HAL_Delay(2000);
+  HD44780_Blink();
+  HAL_Delay(5000);
+  HD44780_NoBlink();
+  HAL_Delay(2000);
+  HD44780_NoCursor();
+  HAL_Delay(2000);
+
+  HD44780_NoDisplay();
+  HAL_Delay(2000);
+  HD44780_Display();
+
+  HD44780_Clear();
+  HD44780_SetCursor(0,0);
+  HD44780_PrintStr("Learning STM32 with LCD is fun :-)");
+  int x;
+  for(int x=0; x<40; x=x+1)
+  {
+    HD44780_ScrollDisplayLeft();  //HD44780_ScrollDisplayRight();
+    HAL_Delay(500);
+  }
+
+  char snum[5];
+  for ( int x = 1; x <= 200 ; x++ )
+  {
+    itoa(x, snum, 10);
+    HD44780_Clear();
+    HD44780_SetCursor(0,0);
+    HD44780_PrintStr(snum);
+    HAL_Delay (1000);
+  }
+ 
   while (1)
   {
-    if (dht11_request_data(data_pin, &htim6) == true){
-      int * arr = dht11_read_data(data_pin, &htim6);
-      if (arr != NULL) {
-        float humidity = 0.0f;
-        float temperature = 0.0f;
-         if (dht11_parse_data(arr, &humidity, &temperature)) {
-            base_index = (int)temperature; // or display humidity if you want
-            // Optionally send to queue as well
-            uint32_t temp = (uint32_t)temperature;
+    // if (dht11_request_data(data_pin, &htim6) == true){
+    //   int * arr = dht11_read_data(data_pin, &htim6);
+    //   if (arr != NULL) {
+    //     float humidity = 0.0f;
+    //     float temperature = 0.0f;
+    //      if (dht11_parse_data(arr, &humidity, &temperature)) {
+    //         base_index = (int)temperature; // or display humidity if you want
+    //         // Optionally send to queue as well
+    //         uint32_t temp = (uint32_t)temperature;
             
-            uint32_t humid = (uint32_t)humidity;
+    //         uint32_t humid = (uint32_t)humidity;
             
             
-         }
-         free(arr);
-        }
-      }
-      writeNumToSevenSeg(base_index);
-      HAL_Delay(5000); // Wait for 2 seconds before next reading
+    //      }
+    //      free(arr);
+    //     }
+    //   }
+
+    // writeNumToSevenSeg(base_index);
+    // char data = "0";
+    // char data_u, data_l;
+
+    // uint8_t data_t[4];
+    // data_u = (data&0xf0);
+    // data_l = ((data<<4)&0xf0);
+    // data_t[0] = data_u|0x0D;  //en=1, rs=1 -> bxxxx1101
+    // data_t[1] = data_u|0x09;  //en=0, rs=1 -> bxxxx1001
+    // data_t[2] = data_l|0x0D;  //en=1, rs=1 -> bxxxx1101
+    // data_t[3] = data_l|0x09;  //en=0, rs=1 -> bxxxx1001
+  
+    // HAL_I2C_Master_Transmit (&hi2c5, SLAVE_ADDRESS_LCD,(uint8_t *) data_t, 4, 100);//Sending in Blocking mode
+    HAL_Delay(100); // Wait for 2 seconds before next reading
+    HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_1); // Toggle an LED to indicate activity
       
     /* USER CODE END WHILE */
 
@@ -262,6 +336,54 @@ static void MX_ETH_Init(void)
   /* USER CODE BEGIN ETH_Init 2 */
 
   /* USER CODE END ETH_Init 2 */
+
+}
+
+/**
+  * @brief I2C5 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2C5_Init(void)
+{
+
+  /* USER CODE BEGIN I2C5_Init 0 */
+
+  /* USER CODE END I2C5_Init 0 */
+
+  /* USER CODE BEGIN I2C5_Init 1 */
+
+  /* USER CODE END I2C5_Init 1 */
+  hi2c5.Instance = I2C5;
+  hi2c5.Init.Timing = 0x60404E72;
+  hi2c5.Init.OwnAddress1 = 0;
+  hi2c5.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c5.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c5.Init.OwnAddress2 = 0;
+  hi2c5.Init.OwnAddress2Masks = I2C_OA2_NOMASK;
+  hi2c5.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c5.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c5) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Analogue filter
+  */
+  if (HAL_I2CEx_ConfigAnalogFilter(&hi2c5, I2C_ANALOGFILTER_ENABLE) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Digital filter
+  */
+  if (HAL_I2CEx_ConfigDigitalFilter(&hi2c5, 0) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2C5_Init 2 */
+
+  /* USER CODE END I2C5_Init 2 */
 
 }
 
