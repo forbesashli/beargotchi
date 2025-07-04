@@ -39,7 +39,7 @@ bool dht11_request_data(SEVEN_SEG_PIN data_pin, TIM_HandleTypeDef *timer){
     
     set_pin_output_mode(data_pin);
     HAL_GPIO_WritePin(data_pin.PORT, data_pin.PIN_NUM, 0);
-    delay_us(18000, timer);
+    HAL_Delay(18);
     HAL_GPIO_WritePin(data_pin.PORT, data_pin.PIN_NUM,1);
     delay_us(40, timer);
     set_pin_input_mode(data_pin);
@@ -53,6 +53,9 @@ bool listen_for_state(SEVEN_SEG_PIN pin, GPIO_PinState state, uint32_t timeout_u
         delay_us(1, timer); // Use your delay_us, pass timer if needed
         elapsed++;
         if (elapsed >= timeout_us) {
+            HD44780_Clear();
+            HD44780_PrintStr("second state failed");
+            HAL_Delay (1000);
             return false;
         }
     }
@@ -76,10 +79,6 @@ int read_bit(SEVEN_SEG_PIN pin, TIM_HandleTypeDef *timer){
 }
 
 int* dht11_read_data(SEVEN_SEG_PIN data_pin, TIM_HandleTypeDef *timer){
-    delay_us(40, timer);
-
-    if (!listen_for_state(data_pin, GPIO_PIN_RESET, 100, timer)) return NULL; // Wait for 80us LOW
-    if (!listen_for_state(data_pin, GPIO_PIN_SET, 100, timer)) return NULL;   // Wait for 80us HIGH
 
     int* arr = (int*)malloc(NUM_BITS * sizeof(int));
     if (arr == NULL) {

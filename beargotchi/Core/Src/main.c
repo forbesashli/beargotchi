@@ -130,98 +130,82 @@ int main(void)
   MX_I2C5_Init();
   /* USER CODE BEGIN 2 */
 
-  // HAL_TIM_Base_Start(&htim6);
+  HAL_TIM_Base_Start(&htim6);
   int base_index = 0; // This will be used to display temperature or humidity
   uint8_t TX_Buffer [] = "C" ;
- 
+  SEVEN_SEG_PIN data_pin = {.PORT = GPIOB, .PIN_NUM =GPIO_PIN_11 };
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   HD44780_Init(2);
-  HD44780_Clear();
-  HD44780_SetCursor(0,0);
-  HD44780_PrintStr("HELLO");
-  HD44780_SetCursor(10,1);
-  HD44780_PrintStr("WORLD");
-  HAL_Delay(2000);
 
   HD44780_Clear();
   HD44780_SetCursor(0,0);
-  HD44780_PrintStr("HELLO");
-  HAL_Delay(2000);
-  HD44780_NoBacklight();
-  HAL_Delay(2000);
-  HD44780_Backlight();
-
-  HAL_Delay(2000);
-  HD44780_Cursor();
-  HAL_Delay(2000);
-  HD44780_Blink();
-  HAL_Delay(5000);
-  HD44780_NoBlink();
-  HAL_Delay(2000);
-  HD44780_NoCursor();
-  HAL_Delay(2000);
-
-  HD44780_NoDisplay();
-  HAL_Delay(2000);
-  HD44780_Display();
-
-  HD44780_Clear();
-  HD44780_SetCursor(0,0);
-  HD44780_PrintStr("Learning STM32 with LCD is fun :-)");
-  int x;
-  for(int x=0; x<40; x=x+1)
-  {
-    HD44780_ScrollDisplayLeft();  //HD44780_ScrollDisplayRight();
-    HAL_Delay(500);
-  }
-
-  char snum[5];
-  for ( int x = 1; x <= 200 ; x++ )
-  {
-    itoa(x, snum, 10);
-    HD44780_Clear();
-    HD44780_SetCursor(0,0);
-    HD44780_PrintStr(snum);
-    HAL_Delay (1000);
-  }
- 
+  HAL_Delay(10000);
   while (1)
   {
-    // if (dht11_request_data(data_pin, &htim6) == true){
-    //   int * arr = dht11_read_data(data_pin, &htim6);
-    //   if (arr != NULL) {
-    //     float humidity = 0.0f;
-    //     float temperature = 0.0f;
-    //      if (dht11_parse_data(arr, &humidity, &temperature)) {
-    //         base_index = (int)temperature; // or display humidity if you want
-    //         // Optionally send to queue as well
-    //         uint32_t temp = (uint32_t)temperature;
-            
-    //         uint32_t humid = (uint32_t)humidity;
-            
-            
-    //      }
-    //      free(arr);
-    //     }
-    //   }
+    HD44780_Clear();
+    HD44780_PrintStr("reading started");
+    HAL_Delay(1500);
+    // if (!listen_for_state(data_pin, GPIO_PIN_RESET, 80, &htim6)) return NULL; // Wait for 80us LOW
+    // if (!listen_for_state(data_pin, GPIO_PIN_SET, 80, &htim6)) return NULL;   // Wait for 80us HIGH
+    if (dht11_request_data(data_pin, &htim6) == true){
 
-    // writeNumToSevenSeg(base_index);
-    // char data = "0";
-    // char data_u, data_l;
+      if (!listen_for_state(data_pin, GPIO_PIN_RESET, 90, &htim6))
+      {
+        HD44780_Clear();
+        HD44780_PrintStr("first state failed");
+        HAL_Delay (1000);
+        
+      } // Wait for 80us LOW
+      if (!listen_for_state(data_pin, GPIO_PIN_SET, 120, &htim6))
+      {
+        HD44780_Clear();
+        HD44780_PrintStr("second state failed");
+        HAL_Delay (1000);
+        
+      }  // Wait for 80us HIGH
+      int * arr = dht11_read_data(data_pin, &htim6);
+      if (arr != NULL) {
+        float humidity = 0.0f;
+        float temperature = 0.0f;
+         if (dht11_parse_data(arr, &humidity, &temperature)) {
+            base_index = (int)temperature; // or display humidity if you want
+            // Optionally send to queue as well
+            uint32_t temp = (uint32_t)temperature;
+            
+            uint32_t humid = (uint32_t)humidity;
+            char snum[5];
+    
+            itoa(temp, snum, 10);
+            HD44780_Clear();
+            HD44780_SetCursor(0,0);
+            HD44780_PrintStr(snum);
+            HAL_Delay (1000);
+            
+         }else{
+          HD44780_Clear();
+          HD44780_PrintStr("parse failed");
+          HAL_Delay (1000);
+         }
+         free(arr);
+        }else{
+          HD44780_Clear();
+          HD44780_PrintStr("read failed");
+          HAL_Delay (1000);
+        }
+      }else{
+        HD44780_Clear();
+        HD44780_PrintStr("data request failed");
+        HAL_Delay (1000);
+      }
 
-    // uint8_t data_t[4];
-    // data_u = (data&0xf0);
-    // data_l = ((data<<4)&0xf0);
-    // data_t[0] = data_u|0x0D;  //en=1, rs=1 -> bxxxx1101
-    // data_t[1] = data_u|0x09;  //en=0, rs=1 -> bxxxx1001
-    // data_t[2] = data_l|0x0D;  //en=1, rs=1 -> bxxxx1101
-    // data_t[3] = data_l|0x09;  //en=0, rs=1 -> bxxxx1001
-  
+   
+    
+    
     // HAL_I2C_Master_Transmit (&hi2c5, SLAVE_ADDRESS_LCD,(uint8_t *) data_t, 4, 100);//Sending in Blocking mode
-    HAL_Delay(100); // Wait for 2 seconds before next reading
+    HAL_Delay(6000); // Wait for 2 seconds before next reading
     HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_1); // Toggle an LED to indicate activity
       
     /* USER CODE END WHILE */
