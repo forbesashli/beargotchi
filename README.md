@@ -27,3 +27,8 @@ to flash
 
 openocd -f interface/stlink.cfg -f target/stm32h7x.cfg -c "program build/beargotchi.elf verify reset exit"
 
+# TODO get all the build configs and vscode plugins in here so that it is easy for others to use this
+
+## System Design 
+
+![Beargotchi V1](image.png)
