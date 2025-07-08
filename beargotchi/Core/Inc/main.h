@@ -74,8 +74,12 @@ void Error_Handler(void);
 #define RMII_RXD1_GPIO_Port GPIOC
 #define LED_GREEN_Pin GPIO_PIN_0
 #define LED_GREEN_GPIO_Port GPIOB
-#define SensorDataLine_Pin GPIO_PIN_11
-#define SensorDataLine_GPIO_Port GPIOB
+#define Green_Button_Pin GPIO_PIN_10
+#define Green_Button_GPIO_Port GPIOB
+#define Green_Button_EXTI_IRQn EXTI15_10_IRQn
+#define Red_Button_Pin GPIO_PIN_11
+#define Red_Button_GPIO_Port GPIOB
+#define Red_Button_EXTI_IRQn EXTI15_10_IRQn
 #define RMII_TXD1_Pin GPIO_PIN_13
 #define RMII_TXD1_GPIO_Port GPIOB
 #define LED_RED_Pin GPIO_PIN_14
@@ -88,6 +92,7 @@ void Error_Handler(void);
 #define USB_FS_PWR_EN_GPIO_Port GPIOD
 #define USB_FS_OVCR_Pin GPIO_PIN_7
 #define USB_FS_OVCR_GPIO_Port GPIOG
+#define USB_FS_OVCR_EXTI_IRQn EXTI9_5_IRQn
 #define USB_FS_VBUS_Pin GPIO_PIN_9
 #define USB_FS_VBUS_GPIO_Port GPIOA
 #define USB_FS_ID_Pin GPIO_PIN_10

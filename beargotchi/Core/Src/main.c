@@ -24,7 +24,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "seven_seg.h"
-#include "temp_humid_sensor.h"
+#include "lcd_i2c.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -64,7 +64,7 @@ ETH_TxPacketConfig TxConfig;
 
 ETH_HandleTypeDef heth;
 
-TIM_HandleTypeDef htim6;
+I2C_HandleTypeDef hi2c5;
 
 UART_HandleTypeDef huart3;
 
@@ -97,7 +97,7 @@ static void MX_GPIO_Init(void);
 static void MX_ETH_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_USB_OTG_HS_USB_Init(void);
-static void MX_TIM6_Init(void);
+static void MX_I2C5_Init(void);
 void StartRun10ms(void *argument);
 void StartRun100ms(void *argument);
 
@@ -141,7 +141,7 @@ int main(void)
   MX_ETH_Init();
   MX_USART3_UART_Init();
   MX_USB_OTG_HS_USB_Init();
-  MX_TIM6_Init();
+  MX_I2C5_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -308,40 +308,50 @@ static void MX_ETH_Init(void)
 }
 
 /**
-  * @brief TIM6 Initialization Function
+  * @brief I2C5 Initialization Function
   * @param None
   * @retval None
   */
-static void MX_TIM6_Init(void)
+static void MX_I2C5_Init(void)
 {
 
-  /* USER CODE BEGIN TIM6_Init 0 */
+  /* USER CODE BEGIN I2C5_Init 0 */
 
-  /* USER CODE END TIM6_Init 0 */
+  /* USER CODE END I2C5_Init 0 */
 
-  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  /* USER CODE BEGIN I2C5_Init 1 */
 
-  /* USER CODE BEGIN TIM6_Init 1 */
-
-  /* USER CODE END TIM6_Init 1 */
-  htim6.Instance = TIM6;
-  htim6.Init.Prescaler = 275-1;
-  htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim6.Init.Period = 65535;
-  htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
+  /* USER CODE END I2C5_Init 1 */
+  hi2c5.Instance = I2C5;
+  hi2c5.Init.Timing = 0x60404E72;
+  hi2c5.Init.OwnAddress1 = 0;
+  hi2c5.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c5.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c5.Init.OwnAddress2 = 0;
+  hi2c5.Init.OwnAddress2Masks = I2C_OA2_NOMASK;
+  hi2c5.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c5.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c5) != HAL_OK)
   {
     Error_Handler();
   }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim6, &sMasterConfig) != HAL_OK)
+
+  /** Configure Analogue filter
+  */
+  if (HAL_I2CEx_ConfigAnalogFilter(&hi2c5, I2C_ANALOGFILTER_ENABLE) != HAL_OK)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN TIM6_Init 2 */
 
-  /* USER CODE END TIM6_Init 2 */
+  /** Configure Digital filter
+  */
+  if (HAL_I2CEx_ConfigDigitalFilter(&hi2c5, 0) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2C5_Init 2 */
+
+  /* USER CODE END I2C5_Init 2 */
 
 }
 
@@ -445,8 +455,8 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4|GPIO_PIN_15, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, LED_GREEN_Pin|SensorDataLine_Pin|GPIO_PIN_12|LED_RED_Pin
-                          |GPIO_PIN_15|GPIO_PIN_5|GPIO_PIN_8|GPIO_PIN_9, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, LED_GREEN_Pin|GPIO_PIN_12|LED_RED_Pin|GPIO_PIN_15
+                          |GPIO_PIN_5|GPIO_PIN_8|GPIO_PIN_9, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOD, USB_FS_PWR_EN_Pin|GPIO_PIN_14|GPIO_PIN_15, GPIO_PIN_RESET);
@@ -481,13 +491,19 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LED_GREEN_Pin SensorDataLine_Pin PB12 LED_RED_Pin
-                           PB15 PB5 PB8 PB9 */
-  GPIO_InitStruct.Pin = LED_GREEN_Pin|SensorDataLine_Pin|GPIO_PIN_12|LED_RED_Pin
-                          |GPIO_PIN_15|GPIO_PIN_5|GPIO_PIN_8|GPIO_PIN_9;
+  /*Configure GPIO pins : LED_GREEN_Pin PB12 LED_RED_Pin PB15
+                           PB5 PB8 PB9 */
+  GPIO_InitStruct.Pin = LED_GREEN_Pin|GPIO_PIN_12|LED_RED_Pin|GPIO_PIN_15
+                          |GPIO_PIN_5|GPIO_PIN_8|GPIO_PIN_9;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : Green_Button_Pin Red_Button_Pin */
+  GPIO_InitStruct.Pin = Green_Button_Pin|Red_Button_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pins : USB_FS_PWR_EN_Pin PD14 PD15 */
@@ -525,6 +541,9 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(USB_FS_ID_GPIO_Port, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
+
   HAL_NVIC_SetPriority(EXTI15_10_IRQn, 5, 0);
   HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
@@ -533,19 +552,24 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-uint16_t carasel[10] = {0 ,10 ,200 ,3000 ,4444, 500, 60, 7, 80, 9999};
-volatile int base_index = 9999;
+volatile uint32_t happiness = 1;
+volatile uint32_t hunger = 1;
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-	static uint32_t last_press = 0;
-	if(GPIO_Pin == GPIO_PIN_13) {
-	  if(HAL_GetTick() - last_press > 200) {
-		  base_index = (base_index + 1) % 10;
-		  last_press = HAL_GetTick();
-	  }
 
-  } else {
+	if(GPIO_Pin == GPIO_PIN_10) {
+	  
+    hunger++;
+    if(hunger > 10) {
+      hunger = 0;
+    }
+  } else if (GPIO_Pin == GPIO_PIN_11) {
+    happiness++;
+    if(happiness > 10) {
+      happiness = 0;    
+    }
+  }else{
       __NOP();
   }
 }
@@ -564,10 +588,28 @@ void StartRun10ms(void *argument)
 
   uint32_t tick;
   tick = osKernelGetTickCount(); 
+  HD44780_Init(2);
+
+  HD44780_Clear();
+  HD44780_SetCursor(0,0);
   /* Infinite loop */
   for(;;)
   {
-    writeNumToSevenSeg(base_index);
+    // writeNumToSevenSeg(base_index);
+    char snum[5];
+    
+    itoa(happiness, snum, 10);
+    HD44780_Clear();
+    HD44780_SetCursor(0,0);
+    HD44780_PrintStr(snum);
+
+
+    char snum2[5];
+    itoa(hunger, snum2, 10);
+          
+    HD44780_SetCursor(0,1);
+    HD44780_PrintStr(snum2);
+    HAL_Delay (1000);
 
   }
   /* USER CODE END 5 */
@@ -586,36 +628,13 @@ void StartRun100ms(void *argument)
   uint32_t tick;
   SEVEN_SEG_PIN data_pin = {.PORT = GPIOB,.PIN_NUM = GPIO_PIN_11};
   tick = osKernelGetTickCount(); 
-  HAL_TIM_Base_Start(&htim6);
+
   /* Infinite loop */
   for(;;)
   {
 
-    tick += 100U;    
-    if (dht11_request_data(data_pin, &htim6) == true){
-      uint32_t primask = __get_PRIMASK();
-      __disable_irq();
-      int * arr = dht11_read_data(data_pin, &htim6);
-      if (arr != NULL) {
-        float humidity, temperature;
-        if (dht11_parse_data(arr, &humidity, &temperature)) {
-            base_index = (int)temperature; // or display humidity if you want
-            // Optionally send to queue as well
-            uint32_t temp = (uint32_t)temperature;
-            uint32_t humid = (uint32_t)humidity;
-            // osMessageQueuePut(tempQueueHandle, &temp, 0U, 0U);
-            // osMessageQueuePut(tempQueueHandle, &humid, 0U, 0U);
-        } else {
-            base_index = 9999; // Error state
-        }
-        free(arr);
-      } else {
-        base_index = 9999; // Error state
-      }
-      if (!primask) __enable_irq();
-    }     
-    osDelayUntil(tick);
-    
+  
+    HAL_Delay(100); // Simulate 10ms delay
   
   }
   /* USER CODE END StartRun100ms */
