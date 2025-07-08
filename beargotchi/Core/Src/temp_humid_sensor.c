@@ -35,17 +35,6 @@ void set_pin_input_mode(SEVEN_SEG_PIN pin){
     HAL_GPIO_Init(pin.PORT, &GPIO_InitStruct);
 }
 
-bool dht11_request_data(SEVEN_SEG_PIN data_pin, TIM_HandleTypeDef *timer){
-    
-    set_pin_output_mode(data_pin);
-    HAL_GPIO_WritePin(data_pin.PORT, data_pin.PIN_NUM, 0);
-    HAL_Delay(18);
-    HAL_GPIO_WritePin(data_pin.PORT, data_pin.PIN_NUM,1);
-    delay_us(40, timer);
-    set_pin_input_mode(data_pin);
-    return true;
-}
-
 bool listen_for_state(SEVEN_SEG_PIN pin, GPIO_PinState state, uint32_t timeout_us, TIM_HandleTypeDef *timer){
     // Wait for pin to change from 'state' within timeout_us microseconds
     uint32_t elapsed = 0;
@@ -54,7 +43,7 @@ bool listen_for_state(SEVEN_SEG_PIN pin, GPIO_PinState state, uint32_t timeout_u
         elapsed++;
         if (elapsed >= timeout_us) {
             HD44780_Clear();
-            HD44780_PrintStr("second state failed");
+            HD44780_PrintStr("listen failed");
             HAL_Delay (1000);
             return false;
         }
@@ -62,17 +51,47 @@ bool listen_for_state(SEVEN_SEG_PIN pin, GPIO_PinState state, uint32_t timeout_u
     return true;
 }
 
+bool dht11_request_data(SEVEN_SEG_PIN data_pin, TIM_HandleTypeDef *timer){
+    
+    set_pin_output_mode(data_pin);
+    HAL_GPIO_WritePin(data_pin.PORT, data_pin.PIN_NUM, 0);
+    HAL_Delay(20);
+    HAL_GPIO_WritePin(data_pin.PORT, data_pin.PIN_NUM,1);
+    delay_us(30, timer); // Wait for 40us to ensure the sensor has time to respond
+    set_pin_input_mode(data_pin);
+    return true;
+}
+
+
+
 int read_bit(SEVEN_SEG_PIN pin, TIM_HandleTypeDef *timer){
     
-    delay_us(50, timer);
+    // delay_us(35, timer);
     int ret_val = -1;
 
-    if (HAL_GPIO_ReadPin(pin.PORT, pin.PIN_NUM) == GPIO_PIN_SET){
-        ret_val = 1;
-    }else if (HAL_GPIO_ReadPin(pin.PORT, pin.PIN_NUM) == GPIO_PIN_RESET){
+    // if (HAL_GPIO_ReadPin(pin.PORT, pin.PIN_NUM) == GPIO_PIN_SET){
+    //     ret_val = 1;
+    // }else if (HAL_GPIO_ReadPin(pin.PORT, pin.PIN_NUM) == GPIO_PIN_RESET){
+    //     ret_val = 0;
+    // }
+    // else{
+    //     ret_val = -1;
+    // }
+
+    uint32_t elapsed = 0;
+    while (HAL_GPIO_ReadPin(pin.PORT, pin.PIN_NUM) == GPIO_PIN_SET) {
+        delay_us(1, timer); // Use your delay_us, pass timer if needed
+        elapsed++;
+
+    }
+    if (elapsed < 33 && elapsed > 18) {
+        // If we didn't wait long enough, return -1
         ret_val = 0;
     }
-    else{
+    else if (elapsed <=80) {
+        // If we waited too long, return -1
+        ret_val = 1;
+    } else {
         ret_val = -1;
     }
     return ret_val;
@@ -86,7 +105,12 @@ int* dht11_read_data(SEVEN_SEG_PIN data_pin, TIM_HandleTypeDef *timer){
     }
 
     for(int i = 0; i < NUM_BITS; i++){
-        delay_us(40, timer);
+        if (!listen_for_state(data_pin, GPIO_PIN_RESET, 60, timer)) // Wait for 80us LOW
+        {
+            free(arr);
+            return NULL;
+        } // Wait for 80us LOW
+        
         int bit = read_bit(data_pin, timer);
         if (bit == -1) {
             free(arr);
@@ -102,7 +126,8 @@ int* dht11_read_data(SEVEN_SEG_PIN data_pin, TIM_HandleTypeDef *timer){
 uint8_t bits_to_byte(const int* arr, int start_index) {
     uint8_t value = 0;
     for (int i = 0; i < 8; i++) {
-        value = (value << 1) | (arr[start_index + i] & 1);
+        uint8_t bit = arr[start_index + i];
+        value = (value << 1) | (bit & 1);
     }
     return value;
 }
@@ -117,8 +142,10 @@ bool dht11_parse_data(const int* arr, float* humidity, float* temperature) {
     uint8_t temp_dec = bits_to_byte(arr, 24);
     uint8_t checksum = bits_to_byte(arr, 32);
     uint8_t sum = hum_int|temp_int;
-    if (sum != checksum) return false;
-    *humidity = (float)hum_int + ((float)hum_dec) / 10.0f;
-    *temperature = (float)temp_int + ((float)temp_dec) / 10.0f;
+    sum |=temp_dec;
+    sum |=hum_dec;
+    // if (sum != checksum) return false;
+    *humidity = (float)sum;
+    *temperature = (float)checksum;
     return true;
 }

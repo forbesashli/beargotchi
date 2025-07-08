@@ -152,7 +152,7 @@ int main(void)
     // if (!listen_for_state(data_pin, GPIO_PIN_SET, 80, &htim6)) return NULL;   // Wait for 80us HIGH
     if (dht11_request_data(data_pin, &htim6) == true){
 
-      if (!listen_for_state(data_pin, GPIO_PIN_RESET, 100, &htim6))
+      if (!listen_for_state(data_pin, GPIO_PIN_RESET, 120, &htim6))
       {
         HD44780_Clear();
         HD44780_PrintStr("first state failed");
@@ -182,6 +182,13 @@ int main(void)
             HD44780_Clear();
             HD44780_SetCursor(0,0);
             HD44780_PrintStr(snum);
+
+
+            char snum2[5];
+            itoa(humid, snum2, 10);
+          
+            HD44780_SetCursor(0,1);
+            HD44780_PrintStr(snum2);
             HAL_Delay (1000);
             
          }else{
