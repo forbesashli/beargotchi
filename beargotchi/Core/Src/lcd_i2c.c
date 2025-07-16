@@ -116,74 +116,10 @@ void HD44780_SetCursor(uint8_t col, uint8_t row)
   SendCommand(LCD_SETDDRAMADDR | (col + row_offsets[row]));
 }
 
-void HD44780_NoDisplay()
-{
-  dpControl &= ~LCD_DISPLAYON;
-  SendCommand(LCD_DISPLAYCONTROL | dpControl);
-}
-
 void HD44780_Display()
 {
   dpControl |= LCD_DISPLAYON;
   SendCommand(LCD_DISPLAYCONTROL | dpControl);
-}
-
-void HD44780_NoCursor()
-{
-  dpControl &= ~LCD_CURSORON;
-  SendCommand(LCD_DISPLAYCONTROL | dpControl);
-}
-
-void HD44780_Cursor()
-{
-  dpControl |= LCD_CURSORON;
-  SendCommand(LCD_DISPLAYCONTROL | dpControl);
-}
-
-void HD44780_NoBlink()
-{
-  dpControl &= ~LCD_BLINKON;
-  SendCommand(LCD_DISPLAYCONTROL | dpControl);
-}
-
-void HD44780_Blink()
-{
-  dpControl |= LCD_BLINKON;
-  SendCommand(LCD_DISPLAYCONTROL | dpControl);
-}
-
-void HD44780_ScrollDisplayLeft(void)
-{
-  SendCommand(LCD_CURSORSHIFT | LCD_DISPLAYMOVE | LCD_MOVELEFT);
-}
-
-void HD44780_ScrollDisplayRight(void)
-{
-  SendCommand(LCD_CURSORSHIFT | LCD_DISPLAYMOVE | LCD_MOVERIGHT);
-}
-
-void HD44780_LeftToRight(void)
-{
-  dpMode |= LCD_ENTRYLEFT;
-  SendCommand(LCD_ENTRYMODESET | dpMode);
-}
-
-void HD44780_RightToLeft(void)
-{
-  dpMode &= ~LCD_ENTRYLEFT;
-  SendCommand(LCD_ENTRYMODESET | dpMode);
-}
-
-void HD44780_AutoScroll(void)
-{
-  dpMode |= LCD_ENTRYSHIFTINCREMENT;
-  SendCommand(LCD_ENTRYMODESET | dpMode);
-}
-
-void HD44780_NoAutoScroll(void)
-{
-  dpMode &= ~LCD_ENTRYSHIFTINCREMENT;
-  SendCommand(LCD_ENTRYMODESET | dpMode);
 }
 
 void HD44780_CreateSpecialChar(uint8_t location, uint8_t charmap[])
@@ -209,24 +145,6 @@ void HD44780_LoadCustomCharacter(uint8_t char_num, uint8_t *rows)
 void HD44780_PrintStr(const char c[])
 {
   while(*c) SendChar(*c++);
-}
-
-void HD44780_SetBacklight(uint8_t new_val)
-{
-  if(new_val) HD44780_Backlight();
-  else HD44780_NoBacklight();
-}
-
-void HD44780_NoBacklight(void)
-{
-  dpBacklight=LCD_NOBACKLIGHT;
-  ExpanderWrite(0);
-}
-
-void HD44780_Backlight(void)
-{
-  dpBacklight=LCD_BACKLIGHT;
-  ExpanderWrite(0);
 }
 
 static void SendCommand(uint8_t cmd)
