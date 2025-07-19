@@ -107,7 +107,9 @@ void StartRun100ms(void *argument);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+#define DEBOUNCE_DELAY 200 // 200 ms debounce delay
+#define MAX_HAPPINESS 10
+#define MAX_HUNGER 10
 /* USER CODE END 0 */
 
 /**
@@ -554,20 +556,24 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 volatile uint32_t happiness = 1;
 volatile uint32_t hunger = 1;
+uint32_t last_interrupt_time_hunger = 0;
+uint32_t last_interrupt_time_happiness = 0;
+
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-
+  uint32_t current_time = HAL_GetTick();
 	if(GPIO_Pin == GPIO_PIN_10) {
-	  
-    hunger++;
-    if(hunger > 10) {
-      hunger = 0;
+    if (current_time - last_interrupt_time_hunger > DEBOUNCE_DELAY) {
+      last_interrupt_time_hunger = current_time;
+      hunger = (hunger + 1) % (MAX_HUNGER + 1);
     }
+    
   } else if (GPIO_Pin == GPIO_PIN_11) {
-    happiness++;
-    if(happiness > 10) {
-      happiness = 0;    
+    if (current_time - last_interrupt_time_happiness > DEBOUNCE_DELAY) {
+      last_interrupt_time_happiness = current_time;
+      // Increment happiness, wrap around if it exceeds MAX_HAPPINESS
+      happiness = (happiness + 1) % (MAX_HAPPINESS + 1);
     }
   }else{
       __NOP();
@@ -588,28 +594,27 @@ void StartRun10ms(void *argument)
 
   uint32_t tick;
   tick = osKernelGetTickCount(); 
-  HD44780_Init(2);
+  LCD_Init(2);
 
-  HD44780_Clear();
-  HD44780_SetCursor(0,0);
+  LCD_Clear();
+  LCD_SetCursor(0,0);
   /* Infinite loop */
   for(;;)
   {
     // writeNumToSevenSeg(base_index);
-    char snum[5];
-    
-    itoa(happiness, snum, 10);
-    HD44780_Clear();
-    HD44780_SetCursor(0,0);
-    HD44780_PrintStr(snum);
+    char line1[20];
+    char line2[20];
 
+    sprintf(line1, "happiness is %d", happiness);
+    sprintf(line2, "hunger is %d", hunger);
 
-    char snum2[5];
-    itoa(hunger, snum2, 10);
+    LCD_Clear();
+    LCD_SetCursor(0,0);
+    LCD_PrintStr(line1);
           
-    HD44780_SetCursor(0,1);
-    HD44780_PrintStr(snum2);
-    HAL_Delay (1000);
+    LCD_SetCursor(0,1);
+    LCD_PrintStr(line2);
+    osDelay(10);
 
   }
   /* USER CODE END 5 */
@@ -632,10 +637,7 @@ void StartRun100ms(void *argument)
   /* Infinite loop */
   for(;;)
   {
-
-  
-    HAL_Delay(100); // Simulate 10ms delay
-  
+    osDelay(100); // Simulate 100ms delay
   }
   /* USER CODE END StartRun100ms */
 }

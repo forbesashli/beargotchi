@@ -39,7 +39,7 @@ uint8_t special2[8] = {
         0b00000
 };
 
-void HD44780_Init(uint8_t rows)
+void LCD_Init(uint8_t rows)
 {
   dpRows = rows;
 
@@ -58,10 +58,10 @@ void HD44780_Init(uint8_t rows)
 
   /* Wait for initialization */
   DelayInit();
-  HAL_Delay(50);
+  osDelay(50);
 
   ExpanderWrite(dpBacklight);
-  HAL_Delay(1000);
+  osDelay(1000);
 
   /* 4bit Mode */
   Write4Bits(0x03 << 4);
@@ -80,33 +80,33 @@ void HD44780_Init(uint8_t rows)
   SendCommand(LCD_FUNCTIONSET | dpFunction);
 
   dpControl = LCD_DISPLAYON | LCD_CURSOROFF | LCD_BLINKOFF;
-  HD44780_Display();
-  HD44780_Clear();
+  LCD_Display();
+  LCD_Clear();
 
   /* Display Mode */
   dpMode = LCD_ENTRYLEFT | LCD_ENTRYSHIFTDECREMENT;
   SendCommand(LCD_ENTRYMODESET | dpMode);
   DelayUS(4500);
 
-  HD44780_CreateSpecialChar(0, special1);
-  HD44780_CreateSpecialChar(1, special2);
+  LCD_CreateSpecialChar(0, special1);
+  LCD_CreateSpecialChar(1, special2);
 
-  HD44780_Home();
+  LCD_Home();
 }
 
-void HD44780_Clear()
+void LCD_Clear()
 {
   SendCommand(LCD_CLEARDISPLAY);
   DelayUS(2000);
 }
 
-void HD44780_Home()
+void LCD_Home()
 {
   SendCommand(LCD_RETURNHOME);
   DelayUS(2000);
 }
 
-void HD44780_SetCursor(uint8_t col, uint8_t row)
+void LCD_SetCursor(uint8_t col, uint8_t row)
 {
   int row_offsets[] = { 0x00, 0x40, 0x14, 0x54 };
   if (row >= dpRows)
@@ -116,13 +116,13 @@ void HD44780_SetCursor(uint8_t col, uint8_t row)
   SendCommand(LCD_SETDDRAMADDR | (col + row_offsets[row]));
 }
 
-void HD44780_Display()
+void LCD_Display()
 {
   dpControl |= LCD_DISPLAYON;
   SendCommand(LCD_DISPLAYCONTROL | dpControl);
 }
 
-void HD44780_CreateSpecialChar(uint8_t location, uint8_t charmap[])
+void LCD_CreateSpecialChar(uint8_t location, uint8_t charmap[])
 {
   location &= 0x7;
   SendCommand(LCD_SETCGRAMADDR | (location << 3));
@@ -132,17 +132,17 @@ void HD44780_CreateSpecialChar(uint8_t location, uint8_t charmap[])
   }
 }
 
-void HD44780_PrintSpecialChar(uint8_t index)
+void LCD_PrintSpecialChar(uint8_t index)
 {
   SendChar(index);
 }
 
-void HD44780_LoadCustomCharacter(uint8_t char_num, uint8_t *rows)
+void LCD_LoadCustomCharacter(uint8_t char_num, uint8_t *rows)
 {
-  HD44780_CreateSpecialChar(char_num, rows);
+  LCD_CreateSpecialChar(char_num, rows);
 }
 
-void HD44780_PrintStr(const char c[])
+void LCD_PrintStr(const char c[])
 {
   while(*c) SendChar(*c++);
 }

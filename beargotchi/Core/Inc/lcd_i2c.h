@@ -57,14 +57,14 @@
 /* Device I2C Address */
 #define DEVICE_ADDR     (0x3F << 1)
 
-void HD44780_Init(uint8_t rows);
-void HD44780_Clear();
-void HD44780_Home();
-void HD44780_Display();
-void HD44780_CreateSpecialChar(uint8_t, uint8_t[]);
-void HD44780_PrintSpecialChar(uint8_t);
-void HD44780_SetCursor(uint8_t, uint8_t);
-void HD44780_LoadCustomCharacter(uint8_t char_num, uint8_t *rows);
-void HD44780_PrintStr(const char[]);
+void LCD_Init(uint8_t rows);
+void LCD_Clear();
+void LCD_Home();
+void LCD_Display();
+void LCD_CreateSpecialChar(uint8_t, uint8_t[]);
+void LCD_PrintSpecialChar(uint8_t);
+void LCD_SetCursor(uint8_t, uint8_t);
+void LCD_LoadCustomCharacter(uint8_t char_num, uint8_t *rows);
+void LCD_PrintStr(const char[]);
 
 #endif /* LIQUIDCRYSTAL_I2C_H_ */
