@@ -58,10 +58,10 @@ void LCD_Init(uint8_t rows)
 
   /* Wait for initialization */
   DelayInit();
-  osDelay(50);
+  DelayUS(50);
 
   ExpanderWrite(dpBacklight);
-  osDelay(1000);
+  DelayUS(1000);
 
   /* 4bit Mode */
   Write4Bits(0x03 << 4);
@@ -202,6 +202,7 @@ static void DelayInit(void)
   __ASM volatile ("NOP");
 }
 
+// need to make it actually RTOS safe, mama this is garbage
 static void DelayUS(uint32_t us) {
   uint32_t cycles = (SystemCoreClock/1000000L)*us;
   uint32_t start = DWT->CYCCNT;

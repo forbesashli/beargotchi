@@ -68,17 +68,24 @@ I2C_HandleTypeDef hi2c5;
 
 UART_HandleTypeDef huart3;
 
-/* Definitions for Run10ms */
-osThreadId_t Run10msHandle;
-const osThreadAttr_t Run10ms_attributes = {
-  .name = "Run10ms",
+/* Definitions for DisplayTask */
+osThreadId_t DisplayTaskHandle;
+const osThreadAttr_t DisplayTask_attributes = {
+  .name = "DisplayTask",
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
-/* Definitions for Run100ms */
-osThreadId_t Run100msHandle;
-const osThreadAttr_t Run100ms_attributes = {
-  .name = "Run100ms",
+/* Definitions for HappinessTask */
+osThreadId_t HappinessTaskHandle;
+const osThreadAttr_t HappinessTask_attributes = {
+  .name = "HappinessTask",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityLow,
+};
+/* Definitions for HealthTask */
+osThreadId_t HealthTaskHandle;
+const osThreadAttr_t HealthTask_attributes = {
+  .name = "HealthTask",
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
@@ -98,8 +105,9 @@ static void MX_ETH_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_USB_OTG_HS_USB_Init(void);
 static void MX_I2C5_Init(void);
-void StartRun10ms(void *argument);
-void StartRun100ms(void *argument);
+void StartDisplayTask(void *argument);
+void StartHappinessTask(void *argument);
+void startHealthTask(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -109,7 +117,9 @@ void StartRun100ms(void *argument);
 /* USER CODE BEGIN 0 */
 #define DEBOUNCE_DELAY 200 // 200 ms debounce delay
 #define MAX_HAPPINESS 10
-#define MAX_HUNGER 10
+#define MAX_health 10
+#define HEALTH_DECREASE_RATE 1000 // Decrease health by 1000 ms 
+#define HAPPINESS_DECREASE_RATE 1500 // Decrease happiness by 1500 ms
 /* USER CODE END 0 */
 
 /**
@@ -172,11 +182,14 @@ int main(void)
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
-  /* creation of Run10ms */
-  Run10msHandle = osThreadNew(StartRun10ms, NULL, &Run10ms_attributes);
+  /* creation of DisplayTask */
+  DisplayTaskHandle = osThreadNew(StartDisplayTask, NULL, &DisplayTask_attributes);
 
-  /* creation of Run100ms */
-  Run100msHandle = osThreadNew(StartRun100ms, NULL, &Run100ms_attributes);
+  /* creation of HappinessTask */
+  HappinessTaskHandle = osThreadNew(StartHappinessTask, NULL, &HappinessTask_attributes);
+
+  /* creation of HealthTask */
+  HealthTaskHandle = osThreadNew(startHealthTask, NULL, &HealthTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -554,9 +567,9 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-volatile uint32_t happiness = 1;
-volatile uint32_t hunger = 1;
-uint32_t last_interrupt_time_hunger = 0;
+volatile uint32_t happiness = 3;
+volatile uint32_t health = 3;
+uint32_t last_interrupt_time_health = 0;
 uint32_t last_interrupt_time_happiness = 0;
 
 
@@ -564,16 +577,19 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
   uint32_t current_time = HAL_GetTick();
 	if(GPIO_Pin == GPIO_PIN_10) {
-    if (current_time - last_interrupt_time_hunger > DEBOUNCE_DELAY) {
-      last_interrupt_time_hunger = current_time;
-      hunger = (hunger + 1) % (MAX_HUNGER + 1);
+    if (current_time - last_interrupt_time_health > DEBOUNCE_DELAY) {
+      last_interrupt_time_health = current_time;
+      if (health < 10){
+        health++;
+      }
     }
     
   } else if (GPIO_Pin == GPIO_PIN_11) {
     if (current_time - last_interrupt_time_happiness > DEBOUNCE_DELAY) {
       last_interrupt_time_happiness = current_time;
-      // Increment happiness, wrap around if it exceeds MAX_HAPPINESS
-      happiness = (happiness + 1) % (MAX_HAPPINESS + 1);
+      if (happiness < 10){
+        happiness++;
+      }
     }
   }else{
       __NOP();
@@ -581,19 +597,16 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 }
 /* USER CODE END 4 */
 
-/* USER CODE BEGIN Header_StartRun10ms */
+/* USER CODE BEGIN Header_StartDisplayTask */
 /**
-  * @brief  Function implementing the Run10ms thread.
+  * @brief  Function implementing the DisplayTask thread.
   * @param  argument: Not used
   * @retval None
   */
-/* USER CODE END Header_StartRun10ms */
-void StartRun10ms(void *argument)
+/* USER CODE END Header_StartDisplayTask */
+void StartDisplayTask(void *argument)
 {
-  /* USER CODE BEGIN 5 */
-
-  uint32_t tick;
-  tick = osKernelGetTickCount(); 
+  /* USER CODE BEGIN 5 */  
   LCD_Init(2);
 
   LCD_Clear();
@@ -602,44 +615,88 @@ void StartRun10ms(void *argument)
   for(;;)
   {
     // writeNumToSevenSeg(base_index);
-    char line1[20];
-    char line2[20];
+    if (happiness == 0 && health == 0) {
+      LCD_Clear();
+      LCD_SetCursor(0,0);
+      LCD_PrintStr("Game Over");
+  
+    }else{
+      char line1[20];
+      char line2[20];
 
-    sprintf(line1, "happiness is %d", happiness);
-    sprintf(line2, "hunger is %d", hunger);
+      sprintf(line1, "happiness is %d", happiness);
+      sprintf(line2, "health is %d", health);
 
-    LCD_Clear();
-    LCD_SetCursor(0,0);
-    LCD_PrintStr(line1);
-          
-    LCD_SetCursor(0,1);
-    LCD_PrintStr(line2);
-    osDelay(10);
+      LCD_Clear();
+      LCD_SetCursor(0,0);
+      LCD_PrintStr(line1);
+            
+      LCD_SetCursor(0,1);
+      LCD_PrintStr(line2);
+      osDelay(10);
+    }
 
   }
   /* USER CODE END 5 */
 }
 
-/* USER CODE BEGIN Header_StartRun100ms */
+/* USER CODE BEGIN Header_StartHappinessTask */
 /**
-* @brief Function implementing the Run100ms thread.
+* @brief Function implementing the HappinessTask thread.
 * @param argument: Not used
 * @retval None
 */
-/* USER CODE END Header_StartRun100ms */
-void StartRun100ms(void *argument)
+/* USER CODE END Header_StartHappinessTask */
+void StartHappinessTask(void *argument)
 {
-  /* USER CODE BEGIN StartRun100ms */
-  uint32_t tick;
-  SEVEN_SEG_PIN data_pin = {.PORT = GPIOB,.PIN_NUM = GPIO_PIN_11};
-  tick = osKernelGetTickCount(); 
+  /* USER CODE BEGIN StartHappinessTask */
+  TickType_t xLastWakeTime;
+  const TickType_t xFrequency = HAPPINESS_DECREASE_RATE / portTICK_PERIOD_MS;
 
+  // Initialise the xLastWakeTime variable with the current time.
+  xLastWakeTime = xTaskGetTickCount();
   /* Infinite loop */
   for(;;)
   {
-    osDelay(100); // Simulate 100ms delay
+    if (happiness <= 0) {
+      happiness = 0; // Prevent happiness from going negative
+    }
+    else{
+      happiness--;
+    }
+    vTaskDelayUntil(&xLastWakeTime, xFrequency);
   }
-  /* USER CODE END StartRun100ms */
+  /* USER CODE END StartHappinessTask */
+}
+
+/* USER CODE BEGIN Header_startHealthTask */
+/**
+* @brief Function implementing the HealthTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_startHealthTask */
+void startHealthTask(void *argument)
+{
+  /* USER CODE BEGIN startHealthTask */
+
+  TickType_t xLastWakeTime;
+  const TickType_t xFrequency = HEALTH_DECREASE_RATE / portTICK_PERIOD_MS;
+
+  // Initialise the xLastWakeTime variable with the current time.
+  xLastWakeTime = xTaskGetTickCount();
+  /* Infinite loop */
+  for(;;)
+  {
+    if (health <= 0) {
+      health = 0; // Prevent health from going negative
+    }
+    else {
+      health--;
+    }
+    vTaskDelayUntil(&xLastWakeTime, xFrequency);
+  }
+  /* USER CODE END startHealthTask */
 }
 
 /**
