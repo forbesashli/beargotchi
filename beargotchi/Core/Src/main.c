@@ -567,8 +567,8 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-volatile uint32_t happiness = 3;
-volatile uint32_t health = 3;
+volatile uint32_t happiness = 10;
+volatile uint32_t health = 10;
 uint32_t last_interrupt_time_health = 0;
 uint32_t last_interrupt_time_happiness = 0;
 
@@ -633,9 +633,9 @@ void StartDisplayTask(void *argument)
             
       LCD_SetCursor(0,1);
       LCD_PrintStr(line2);
-      osDelay(10);
+      
     }
-
+    osDelay(25);
   }
   /* USER CODE END 5 */
 }

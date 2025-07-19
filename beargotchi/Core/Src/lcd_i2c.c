@@ -58,23 +58,23 @@ void LCD_Init(uint8_t rows)
 
   /* Wait for initialization */
   DelayInit();
-  DelayUS(50);
+  osDelay(1);
 
   ExpanderWrite(dpBacklight);
-  DelayUS(1000);
+  osDelay(1);
 
   /* 4bit Mode */
   Write4Bits(0x03 << 4);
-  DelayUS(4500);
+  osDelay(4);
 
   Write4Bits(0x03 << 4);
-  DelayUS(4500);
+  osDelay(4);
 
   Write4Bits(0x03 << 4);
-  DelayUS(4500);
+  osDelay(4);
 
   Write4Bits(0x02 << 4);
-  DelayUS(100);
+  osDelay(1);
 
   /* Display Control */
   SendCommand(LCD_FUNCTIONSET | dpFunction);
@@ -86,7 +86,7 @@ void LCD_Init(uint8_t rows)
   /* Display Mode */
   dpMode = LCD_ENTRYLEFT | LCD_ENTRYSHIFTDECREMENT;
   SendCommand(LCD_ENTRYMODESET | dpMode);
-  DelayUS(4500);
+  osDelay(4);
 
   LCD_CreateSpecialChar(0, special1);
   LCD_CreateSpecialChar(1, special2);
@@ -97,13 +97,13 @@ void LCD_Init(uint8_t rows)
 void LCD_Clear()
 {
   SendCommand(LCD_CLEARDISPLAY);
-  DelayUS(2000);
+  osDelay(2);
 }
 
 void LCD_Home()
 {
   SendCommand(LCD_RETURNHOME);
-  DelayUS(2000);
+  osDelay(2);
 }
 
 void LCD_SetCursor(uint8_t col, uint8_t row)
@@ -180,10 +180,10 @@ static void ExpanderWrite(uint8_t _data)
 static void PulseEnable(uint8_t _data)
 {
   ExpanderWrite(_data | ENABLE);
-  DelayUS(20);
+  // osDelay(1);
 
   ExpanderWrite(_data & ~ENABLE);
-  DelayUS(20);
+  // osDelay(1);
 }
 
 static void DelayInit(void)
