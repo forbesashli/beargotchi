@@ -1,0 +1,3 @@
+[submodule "beargotchi/hal"]
+	path = beargotchi/hal
+	url = https://github.com/forbesashli/hal.git
