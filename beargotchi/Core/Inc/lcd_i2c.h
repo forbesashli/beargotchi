@@ -1,6 +1,10 @@
 #ifndef LIQUIDCRYSTAL_I2C_H_
 #define LIQUIDCRYSTAL_I2C_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "stm32h7xx_hal.h"
 
 /* Command */
@@ -66,5 +70,9 @@ void LCD_PrintSpecialChar(uint8_t);
 void LCD_SetCursor(uint8_t, uint8_t);
 void LCD_LoadCustomCharacter(uint8_t char_num, uint8_t *rows);
 void LCD_PrintStr(const char[]);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* LIQUIDCRYSTAL_I2C_H_ */

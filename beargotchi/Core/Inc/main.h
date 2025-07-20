@@ -33,6 +33,7 @@ extern "C" {
 /* USER CODE BEGIN Includes */
 #include <stdbool.h>
 #include <stdlib.h>
+#include "hal_i2c.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/

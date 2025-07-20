@@ -12,6 +12,10 @@
 #ifndef INC_SEVEN_SEG_H_
 #define INC_SEVEN_SEG_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Inputs:
  * - SEVEN_SEG_PIN pin configuration
@@ -23,5 +27,9 @@ void writeSevenSegPin(SEVEN_SEG_PIN pin, int state);
 void writeSevenSeg(int digit, int place);
 
 void writeNumToSevenSeg(int number);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* INC_SEVEN_SEG_H_ */

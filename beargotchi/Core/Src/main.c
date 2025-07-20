@@ -118,8 +118,8 @@ void startHealthTask(void *argument);
 #define DEBOUNCE_DELAY 200 // 200 ms debounce delay
 #define MAX_HAPPINESS 10
 #define MAX_health 10
-#define HEALTH_DECREASE_RATE 1000 // Decrease health by 1000 ms 
-#define HAPPINESS_DECREASE_RATE 1500 // Decrease happiness by 1500 ms
+#define HEALTH_DECREASE_RATE 10000 // Decrease health by 1000 ms 
+#define HAPPINESS_DECREASE_RATE 3200 // Decrease happiness by 1500 ms
 /* USER CODE END 0 */
 
 /**

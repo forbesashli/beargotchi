@@ -12,6 +12,7 @@
       ],
       "includePath": [
         "${workspaceFolder}/Core/Inc",
+        "${workspaceFolder}/hal/include",
         "${workspaceFolder}/Drivers/STM32H7xx_HAL_Driver/Inc",
         "${workspaceFolder}/Drivers/STM32H7xx_HAL_Driver/Inc/Legacy",
         "${workspaceFolder}/Drivers/CMSIS/Device/ST/STM32H7xx/Include",
