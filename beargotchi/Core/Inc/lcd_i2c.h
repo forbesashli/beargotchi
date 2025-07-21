@@ -2,7 +2,8 @@
 #define LIQUIDCRYSTAL_I2C_H_
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 #include "stm32h7xx_hal.h"
@@ -59,17 +60,17 @@ extern "C" {
 #define RS 0x01
 
 /* Device I2C Address */
-#define DEVICE_ADDR     (0x3F << 1)
+#define DEVICE_ADDR (0x3F << 1)
 
-void LCD_Init(uint8_t rows);
-void LCD_Clear();
-void LCD_Home();
-void LCD_Display();
-void LCD_CreateSpecialChar(uint8_t, uint8_t[]);
-void LCD_PrintSpecialChar(uint8_t);
-void LCD_SetCursor(uint8_t, uint8_t);
-void LCD_LoadCustomCharacter(uint8_t char_num, uint8_t *rows);
-void LCD_PrintStr(const char[]);
+    void LCD_Init(uint8_t rows);
+    void LCD_Clear();
+    void LCD_Home();
+    void LCD_Display();
+    void LCD_CreateSpecialChar(uint8_t, uint8_t[]);
+    void LCD_PrintSpecialChar(uint8_t);
+    void LCD_SetCursor(uint8_t, uint8_t);
+    void LCD_LoadCustomCharacter(uint8_t char_num, uint8_t *rows);
+    void LCD_PrintStr(const char[]);
 
 #ifdef __cplusplus
 }

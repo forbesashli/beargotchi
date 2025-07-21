@@ -5,28 +5,29 @@
  *      Author: Ashli
  * Header file for seven seg 'abstraction'
  */
-#include "main.h"
-#include "string.h"
 #include "cmsis_os.h"
+#include "main.h"
 #include "math.h"
+#include "string.h"
 #ifndef INC_SEVEN_SEG_H_
 #define INC_SEVEN_SEG_H_
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-/**
- * Inputs:
- * - SEVEN_SEG_PIN pin configuration
- * - int state, one or off, 0 for off , 1 for on
- *
- */
-void writeSevenSegPin(SEVEN_SEG_PIN pin, int state);
+    /**
+     * Inputs:
+     * - SEVEN_SEG_PIN pin configuration
+     * - int state, one or off, 0 for off , 1 for on
+     *
+     */
+    void writeSevenSegPin(SEVEN_SEG_PIN pin, int state);
 
-void writeSevenSeg(int digit, int place);
+    void writeSevenSeg(int digit, int place);
 
-void writeNumToSevenSeg(int number);
+    void writeNumToSevenSeg(int number);
 
 #ifdef __cplusplus
 }

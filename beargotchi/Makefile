@@ -203,6 +203,11 @@ $(BUILD_DIR)/%.bin: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
 $(BUILD_DIR):
 	mkdir $@		
 
+FORMAT_FILES = $(shell find Core hal -type f \( -name '*.cpp' -o -name '*.c' -o -name '*.h' -o -name '*.hpp' \))
+
+format:
+	clang-format -i $(FORMAT_FILES) # -i for in-place formatting
+
 #######################################
 # clean up
 #######################################
